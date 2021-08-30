@@ -1,0 +1,10 @@
+out
+.idea
+.bsp
+target
+*output*.csv
+*.csv
+!Pune*population.csv
+*.log
+*.sh
+/local
