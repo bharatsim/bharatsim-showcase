@@ -5,7 +5,7 @@ import com.bharatsim.engine.basicConversions.decoders.DefaultDecoders._
 import com.bharatsim.engine.basicConversions.encoders.DefaultEncoders._
 import com.bharatsim.engine.fsm.State
 import com.bharatsim.engine.models.StatefulAgent
-import schools.Disease
+import schools.{Disease, Main}
 import schools.InfectionStatus.InfectedSevere
 import schools.models.Person
 
@@ -39,7 +39,7 @@ case class InfectedSevereState(time: Double, toBeH: Boolean) extends State { // 
 
   addTransition(
     when = shouldMoveToH,
-    to = context => HospitalisedState(context.getCurrentStep + Disease.inverse_dt * Disease.hospitalisedDurationProbabilityDistribution.sample(), Disease.splittableRandom.nextDouble() < agentSigma)
+    to = context => HospitalisedState(context.getCurrentStep + Main.inverse_dt * Disease.hospitalisedDurationProbabilityDistribution.sample(), Main.splittableRandom.nextDouble() < agentSigma)
   )
 
   addTransition(

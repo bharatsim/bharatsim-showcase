@@ -5,7 +5,7 @@ import com.bharatsim.engine.basicConversions.decoders.DefaultDecoders._
 import com.bharatsim.engine.basicConversions.encoders.DefaultEncoders._
 import com.bharatsim.engine.fsm.State
 import com.bharatsim.engine.models.StatefulAgent
-import schools.Disease
+import schools.{Disease, Main}
 import schools.InfectionStatus.Exposed
 import schools.models.Person
 
@@ -38,10 +38,10 @@ case class ExposedState(time: Double, toBeA: Boolean) extends State {
 
   addTransition(
     when = exitToA,
-    to = context => AsymptomaticState(context.getCurrentStep + Disease.inverse_dt * Disease.asymptomaticDurationProbabilityDistribution.sample())
+    to = context => AsymptomaticState(context.getCurrentStep + Main.inverse_dt * Disease.asymptomaticDurationProbabilityDistribution.sample())
   )
   addTransition(
     when = exitToP,
-    to = context => PresymptomaticState(context.getCurrentStep + Disease.inverse_dt * Disease.presymptomaticDurationProbabilityDistribution.sample(), Disease.splittableRandom.nextDouble() < agentDelta)
+    to = context => PresymptomaticState(context.getCurrentStep + Main.inverse_dt * Disease.presymptomaticDurationProbabilityDistribution.sample(), Main.splittableRandom.nextDouble() < agentDelta)
   )
 }

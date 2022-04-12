@@ -29,7 +29,7 @@ class SIROutput(context: Context) extends CSVSpecs {
     val graphProvider = context.graphProvider
     val label = "Person"
     val row = List(
-      context.getCurrentStep * Disease.dt,
+      context.getCurrentStep * Main.dt,
       graphProvider.fetchCount(label, "infectionState" equ Susceptible),
       graphProvider.fetchCount(label, "infectionState" equ Exposed),
       graphProvider.fetchCount(label, "infectionState" equ Asymptomatic),

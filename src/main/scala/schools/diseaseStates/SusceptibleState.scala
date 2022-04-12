@@ -6,7 +6,7 @@ import com.bharatsim.engine.basicConversions.encoders.DefaultEncoders._
 import com.bharatsim.engine.fsm.State
 import com.bharatsim.engine.graph.patternMatcher.MatchCondition._
 import com.bharatsim.engine.models.{Network, StatefulAgent}
-import schools.Disease
+import schools.{Disease, Main}
 import schools.InfectionStatus.{Asymptomatic, Hospitalised, InfectedMild, InfectedSevere, Presymptomatic}
 import schools.Main.rampUpBeta
 import schools.models.Person
@@ -21,7 +21,7 @@ case class SusceptibleState() extends State {
 
     if (agent.asInstanceOf[Person].isSusceptible) {
 
-      val agentBeta = rampedUpBeta(agent.asInstanceOf[Person].beta, t = context.getCurrentStep * Disease.dt, agent = agent)
+      val agentBeta = rampedUpBeta(agent.asInstanceOf[Person].beta, t = context.getCurrentStep * Main.dt, agent = agent)
       agentGamma = if (agent.asInstanceOf[Person].vaccineShots == 0) {
         agent.asInstanceOf[Person].gamma
       }
@@ -41,11 +41,11 @@ case class SusceptibleState() extends State {
         val decodedPlace = agent.asInstanceOf[Person].decodeNode(placeType, place)
         val infectedFraction = fetchInfectedFraction(decodedPlace, placeType, context)
 
-        val r = Disease.splittableRandom.nextDouble()
-        val agentGetsInfected = r < (agentBeta * infectedFraction + Disease.backgroundFOI(context.getCurrentStep * Disease.dt)) * Disease.dt
+        val r = Main.splittableRandom.nextDouble()
+        val agentGetsInfected = r < (agentBeta * infectedFraction + Disease.backgroundFOI(context.getCurrentStep * Main.dt)) * Main.dt
 
         // Are they infected by the background FOI?
-        val agentGetsInfectedByFOI = agentBeta * infectedFraction * Disease.dt < r && r < (agentBeta * infectedFraction + Disease.backgroundFOI(context.getCurrentStep * Disease.dt)) * Disease.dt
+        val agentGetsInfectedByFOI = agentBeta * infectedFraction * Main.dt < r && r < (agentBeta * infectedFraction + Disease.backgroundFOI(context.getCurrentStep * Main.dt)) * Main.dt
 
         if (infectedFraction > 0 && agentGetsInfected) {
           val peopleHere = decodedPlace.getConnections(decodedPlace.getRelation[Person]().get)
@@ -59,7 +59,7 @@ case class SusceptibleState() extends State {
           })
 
           val infectedHereList = infectedHere.toList
-          val infectingAgent = infectedHereList(Disease.splittableRandom.nextInt(infectedHereList.size))
+          val infectingAgent = infectedHereList(Main.splittableRandom.nextInt(infectedHereList.size))
 
           infectingAgent.updateParam("infectedPeople", infectingAgent.infectedPeople + 1)
 
@@ -81,7 +81,7 @@ case class SusceptibleState() extends State {
 
   def vaccinatedParameter(context: Context, agent: StatefulAgent, parameter: Double, fractionalIncrease_firstShot: Double, fractionalIncrease_secondShot: Double, rampUpTime: Double = 14.0): Double = {
 
-    val t = context.getCurrentStep * Disease.dt
+    val t = context.getCurrentStep * Main.dt
 
     if (agent.asInstanceOf[Person].vaccineShots == 1) {
       val vday = agent.asInstanceOf[Person].receivedFirstShotOn
@@ -145,7 +145,7 @@ case class SusceptibleState() extends State {
 
   addTransition(
     when = exitSusceptible,
-    to = context => ExposedState(context.getCurrentStep + Disease.inverse_dt * Disease.exposedDurationProbabilityDistribution.sample(), Disease.splittableRandom.nextDouble() < agentGamma)
+    to = context => ExposedState(context.getCurrentStep + Main.inverse_dt * Disease.exposedDurationProbabilityDistribution.sample(), Main.splittableRandom.nextDouble() < agentGamma)
   )
 
 

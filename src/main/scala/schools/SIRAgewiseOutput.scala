@@ -64,7 +64,7 @@ class SIRAgewiseOutput(context: Context) extends CSVSpecs {
     val graphProvider = context.graphProvider
     val label = "Person"
     val row = List(
-      context.getCurrentStep * Disease.dt,
+      context.getCurrentStep * Main.dt,
       graphProvider.fetchCount(label, "infectionState" equ Susceptible and ("age" gte 0) and ("age" lt 18)),
       graphProvider.fetchCount(label, "infectionState" equ Exposed and ("age" gte 0) and ("age" lt 18)),
       graphProvider.fetchCount(label, "infectionState" equ Asymptomatic and ("age" gte 0) and ("age" lt 18)),

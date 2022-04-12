@@ -5,7 +5,7 @@ import com.bharatsim.engine.basicConversions.decoders.DefaultDecoders._
 import com.bharatsim.engine.basicConversions.encoders.DefaultEncoders._
 import com.bharatsim.engine.graph.GraphNode
 import com.bharatsim.engine.models.{Network, StatefulAgent}
-import schools.Disease
+import schools.{Disease, Main}
 import schools.InfectionStatus._
 import schools.Main.{firstShotsAvailableThisTick, prevaccinateFamilies, secondShotsAvailableThisTick, vaccinatePeople}
 import schools.diseaseStates._
@@ -21,7 +21,6 @@ case class Person(agentId: Long,
                   delta: Double,
                   sigma: Double,
                   isEssentialWorker: Boolean,
-                  takesPublicTransport: Boolean,
                   violateLockdown: Boolean,
                   villageTown: String,
                   lat: String,
@@ -67,14 +66,13 @@ case class Person(agentId: Long,
       case "Office" => node.as[Office]
       case "School" => node.as[School]
       case "ClassRoom" => node.as[ClassRoom]
-      case "Transport" => node.as[Transport]
       case "Hospital" => node.as[Hospital]
     }
   }
 
   def vaccinatePerson(context: Context): Unit = {
 
-    val t: Double = context.getCurrentStep * Disease.dt
+    val t: Double = context.getCurrentStep * Main.dt
     if (shouldGetVaccine(t, roundToAgeRange(age))) {
 
       // Potential first shots
@@ -166,6 +164,5 @@ case class Person(agentId: Long,
   addRelation[Office]("EMPLOYED_BY")
   addRelation[School]("GOES_TO")
   addRelation[ClassRoom]("LEARNS_IN")
-  addRelation[Transport]("TAKES")
   addRelation[Hospital]("TREATED_AT")
 }

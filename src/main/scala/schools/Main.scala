@@ -21,8 +21,12 @@ import schools.models._
 
 object Main extends LazyLogging {
 
+  final val inverse_dt = 2
+  final val dt: Double = 1f / inverse_dt // per 4hour dt
+  final val splittableRandom: RandomNumberGenerator = RandomNumberGenerator()
+
   private val myTick: ScheduleUnit = new ScheduleUnit(1)
-  private val myDay: ScheduleUnit = new ScheduleUnit(myTick * Disease.inverse_dt)
+  private val myDay: ScheduleUnit = new ScheduleUnit(myTick * inverse_dt)
 
   var vaccinatePeople: Boolean = false
   var closeSchools: Boolean = false
@@ -123,7 +127,7 @@ object Main extends LazyLogging {
       registerAction(
         StopSimulation,
         (c: Context) => {
-          c.getCurrentStep >= (200 * Disease.inverse_dt)
+          c.getCurrentStep >= (200 * inverse_dt)
         }
       )
 
@@ -141,7 +145,7 @@ object Main extends LazyLogging {
       registerState[HospitalisedState]
       registerState[DeadState]
 
-      val rn = Disease.splittableRandom.nextDouble()
+      val rn = splittableRandom.nextDouble()
       val closeschoolslabel = if (unlockSchoolsAt > 0) 1 else 0
       val lockdownlabel = if (lockdownEveryone) 1 else 0
       val betaramplabel = if (rampUpBeta) 1 else 0
@@ -194,7 +198,6 @@ object Main extends LazyLogging {
     val data = GraphData()
     val staysAt = Relation[Person, Home](agentID, "STAYS_AT", homeId)
     val houses = Relation[Home, Person](homeId, "HOUSES", agentID)
-    val takesPublicTransport = row("PublicTransport_Jobs").toInt == 1
 
     val schoolID = row("school_id").toLong
     val officeID = row("WorkPlaceID").toLong / 100 // ToDo: Fix the synthetic population so that we don't need to do this
@@ -215,7 +218,7 @@ object Main extends LazyLogging {
     val agentSigma: Double = Disease.ageStratifiedSigma.getOrElse(roundToAgeRange(age), Disease.ageStratifiedSigma(99))
 
     // Prevaccinate 80% of the 60+, and use the remaining to prevaccinate the population randomly
-    val prevaccinate = (age > 60 && Disease.splittableRandom.nextDouble() < 0.8)
+    val prevaccinate = (age > 60 && splittableRandom.nextDouble() < 0.8)
 
     // Alternatively, one could prevaccinate family members and teachers
     //    val prevaccinate = (row("fam_mem").toInt == 1 || isTeacher) && prevaccinateFamilies
@@ -233,7 +236,6 @@ object Main extends LazyLogging {
       delta = agentDelta,
       sigma = agentSigma,
       isEssentialWorker,
-      takesPublicTransport,
       violateLockdown,
       villageTown,
       lat,
@@ -282,16 +284,6 @@ object Main extends LazyLogging {
     }
 
 
-    if (takesPublicTransport) {
-      val transportId = 1
-      val transport = Transport(transportId)
-      val takes = Relation[Person, Transport](agentID, agent.getRelation[Transport]().get, transportId)
-      val carries = Relation[Transport, Person](transportId, transport.getRelation[Person]().get, agentID)
-
-      data.addNode(transportId, transport)
-      data.addRelations(takes, carries)
-    }
-
     if (infectionState == Hospitalised.toString) {
       val hospitalId = 1
       val hospital = Hospital(hospitalId)
@@ -309,7 +301,7 @@ object Main extends LazyLogging {
 
 
   private def setInitialPopulation(): String = {
-    val x = Disease.splittableRandom.nextDouble()
+    val x = splittableRandom.nextDouble()
     if (x <= Disease.asymptomaticFraction) {
       "Asymptomatic"
     }
@@ -324,12 +316,12 @@ object Main extends LazyLogging {
   private def setCitizenInitialState(citizen: Person, initialStatus: String): Unit = {
     initialStatus match {
       case "Susceptible" => citizen.setInitialState(SusceptibleState())
-      case "Asymptomatic" => citizen.setInitialState(AsymptomaticState(Disease.inverse_dt * Disease.asymptomaticDurationProbabilityDistribution.sample()))
-      case "Presymptomatic" => citizen.setInitialState(PresymptomaticState(Disease.inverse_dt * Disease.presymptomaticDurationProbabilityDistribution.sample(), Disease.splittableRandom.nextDouble() < citizen.delta))
-      case "InfectedMild" => citizen.setInitialState(InfectedMildState(Disease.inverse_dt * Disease.mildSymptomaticDurationProbabilityDistribution.sample()))
-      case "InfectedSevere" => citizen.setInitialState(InfectedSevereState(Disease.inverse_dt * Disease.severeSymptomaticDurationProbabilityDistribution.sample(), toBeH = true)) // All SI go to H in IndSciSim
+      case "Asymptomatic" => citizen.setInitialState(AsymptomaticState(inverse_dt * Disease.asymptomaticDurationProbabilityDistribution.sample()))
+      case "Presymptomatic" => citizen.setInitialState(PresymptomaticState(inverse_dt * Disease.presymptomaticDurationProbabilityDistribution.sample(), splittableRandom.nextDouble() < citizen.delta))
+      case "InfectedMild" => citizen.setInitialState(InfectedMildState(inverse_dt * Disease.mildSymptomaticDurationProbabilityDistribution.sample()))
+      case "InfectedSevere" => citizen.setInitialState(InfectedSevereState(inverse_dt * Disease.severeSymptomaticDurationProbabilityDistribution.sample(), toBeH = true)) // All SI go to H in IndSciSim
       case "Recovered" => citizen.setInitialState(RecoveredState())
-      case "Hospitalised" => citizen.setInitialState(HospitalisedState(Disease.inverse_dt * Disease.hospitalisedDurationProbabilityDistribution.sample(), Disease.splittableRandom.nextDouble() < citizen.sigma))
+      case "Hospitalised" => citizen.setInitialState(HospitalisedState(inverse_dt * Disease.hospitalisedDurationProbabilityDistribution.sample(), splittableRandom.nextDouble() < citizen.sigma))
       case "Dead" => citizen.setInitialState(DeadState())
       case _ => throw new Exception(s"Unsupported infection status: $initialStatus")
     }
@@ -340,7 +332,7 @@ object Main extends LazyLogging {
   }
 
   private def setSchoolGradeRandomly(age: Int): String = {
-    (Disease.splittableRandom.nextDouble() * Disease.nClassrooms).toInt.toString
+    (splittableRandom.nextDouble() * Disease.nClassrooms).toInt.toString
   }
 
   private def create12HourSchedules()(implicit context: Context): Unit = {
@@ -369,7 +361,7 @@ object Main extends LazyLogging {
       (TeacherSchedule, (agent: Agent, _: Context) => agent.asInstanceOf[Person].isTeacher, 4),
       (EmployeeSchedule, (agent: Agent, _: Context) => agent.asInstanceOf[Person].isEmployee && !agent.asInstanceOf[Person].isTeacher, 5),
       (StudentSchedule, (agent: Agent, _: Context) => agent.asInstanceOf[Person].isStudent, 6),
-      (HomeboundSchedule, (agent: Agent, _: Context) => agent.asInstanceOf[Person].isHomebound, 7),
+      (HomeboundSchedule, (agent: Agent, _: Context) => agent.asInstanceOf[Person].isHomebound, 7)
     )
 
   }
@@ -381,7 +373,7 @@ object Main extends LazyLogging {
     val activationCondition = (context: Context) => {
       val result = context.getCurrentStep >= 0
       if (result) {
-        schoolsClosedOn = context.getCurrentStep * Disease.dt
+        schoolsClosedOn = context.getCurrentStep * dt
         schoolsOpenedOn = schoolsClosedOn
         println("Schools closed on day " + schoolsClosedOn)
       }
@@ -389,7 +381,7 @@ object Main extends LazyLogging {
     }
     val deactivationCondition = (context: Context) => {
       val currentlyUnvaccinated = context.graphProvider.fetchCount("Person", ("vaccinationStatus" equ false)).toDouble
-      val result = context.getCurrentStep >= unlockSchoolsAt * Disease.inverse_dt
+      val result = context.getCurrentStep >= unlockSchoolsAt * inverse_dt
       if (result) {
         println("Schools opened on day " + schoolsOpenedOn + ", unvaccinated fraction " + currentlyUnvaccinated / ingestedPopulation)
       }
@@ -398,7 +390,7 @@ object Main extends LazyLogging {
     val firstTimeExecution = (context: Context) => ActivatedAt = context.getCurrentStep
 
     val perTickAction = (context: Context) => {
-      schoolsOpenedOn += Disease.dt
+      schoolsOpenedOn += dt
     }
 
     val intervention = SingleInvocationIntervention(interventionName, activationCondition, deactivationCondition, firstTimeExecution, whenActiveActionFunc = perTickAction) // Lock schools for 30 days
@@ -522,7 +514,7 @@ object Main extends LazyLogging {
       val conditionMet = context.getCurrentStep >= 0
       if (conditionMet) {
         vaccinationStarted = context.getCurrentStep
-        println("Vaccination started on day "+vaccinationStarted*Disease.dt)
+        println("Vaccination started on day "+vaccinationStarted*dt)
       }
       conditionMet
     }
@@ -534,13 +526,20 @@ object Main extends LazyLogging {
 
     val perTickAction = (context: Context) => {
 
-      firstShotsAvailableThisTick = 2 * (Disease.vaccinationRate * ingestedPopulation * Disease.dt).toInt
-      secondShotsAvailableThisTick = 2 * (Disease.vaccinationRate * ingestedPopulation * Disease.dt).toInt
+      firstShotsAvailableThisTick = 2 * (Disease.vaccinationRate * ingestedPopulation * dt).toInt
+      secondShotsAvailableThisTick = 2 * (Disease.vaccinationRate * ingestedPopulation * dt).toInt
 
-      if (context.getCurrentStep % Disease.inverse_dt == 0) {
+      if (context.getCurrentStep % inverse_dt == 0) {
 
         var vaccinesAdministeredToday = 0
         vaccinesAvailableToday = (Disease.vaccinationRate * ingestedPopulation).toInt
+
+        // VACCINE ADMINISTRATION: uses the following algorithm
+        // divide the total vaccines such that firstShots:SecondShots :: (tau):(1-tau)
+        // administer the vaccines to the people who are available to receive them
+        // if there are leftover vaccines (eg: more 2nd doses available)
+        // swap the remainder and re-administer (eg: give the excess 2nd doses to people who needed their 1st dose)
+        // though the ratio will not necessarily be tau, this ensures it is close to it
 
         var nFirstShots: Int = (Disease.tau * Disease.vaccinationRate * ingestedPopulation).toInt
         var nSecondShots: Int = vaccinesAvailableToday - nFirstShots
@@ -601,7 +600,7 @@ object Main extends LazyLogging {
 
           person.updateParam("vaccinationStatus", true)
           person.updateParam("vaccineShots", person.vaccineShots + 1)
-          person.updateParam("receivedSecondShotOn", (context.getCurrentStep + 1) * Disease.dt)
+          person.updateParam("receivedSecondShotOn", (context.getCurrentStep + 1) * dt)
 
           person.updateParam("gammaMaxSecondShot", gammaMaxSecondShot) // Added to increase vaccination effect in time
 
@@ -622,7 +621,7 @@ object Main extends LazyLogging {
 
           person.updateParam("vaccinationStatus", true)
           person.updateParam("vaccineShots", person.vaccineShots + 1)
-          person.updateParam("receivedFirstShotOn", (context.getCurrentStep + 1) * Disease.dt)
+          person.updateParam("receivedFirstShotOn", (context.getCurrentStep + 1) * dt)
 
           person.updateParam("gammaMaxFirstShot", gammaMaxFirstShot)
 
@@ -665,14 +664,14 @@ object Main extends LazyLogging {
     val activationCondition = (context: Context) => {
       val result = getInfectedCount(context) >= 0 // If there are any infected at all, lockdown.
       if (result) {
-        lockdownStartedOn = context.getCurrentStep * Disease.dt
+        lockdownStartedOn = context.getCurrentStep * dt
         println("Lockdown started on " + lockdownStartedOn)
       }
       result
     }
     val firstTimeExecution = (context: Context) => ActivatedAt = context.getCurrentStep
     val DeactivationCondition = (context: Context) => {
-      context.getCurrentStep >= ActivatedAt + (LockdownDurationDays * Disease.inverse_dt) // FOREVER lockdown is the default value
+      context.getCurrentStep >= ActivatedAt + (LockdownDurationDays * inverse_dt) // FOREVER lockdown is the default value
     }
     val intervention = SingleInvocationIntervention(interventionName, activationCondition, DeactivationCondition, firstTimeExecution)
 

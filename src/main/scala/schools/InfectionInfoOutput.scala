@@ -25,7 +25,7 @@ class InfectionInfoOutput(context: Context) extends CSVSpecs {
     val graphProvider = context.graphProvider
     val label = "Person"
     val row = List(
-      context.getCurrentStep * Disease.dt,
+      context.getCurrentStep * Main.dt,
       graphProvider.fetchCount(label, "wasInfectedBy" equ "Asymptomatic"),
       graphProvider.fetchCount(label, "wasInfectedBy" equ "Presymptomatic"),
       graphProvider.fetchCount(label, "wasInfectedBy" equ "InfectedMild"),

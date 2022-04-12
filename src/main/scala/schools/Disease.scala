@@ -81,9 +81,6 @@ object Disease {
   final val lambda_MI: Double = 0.1
   final val lambda_SI: Double = 0.5
   final val lambda_H: Double = 0.1
-  final val inverse_dt = 2
-  final val dt: Double = 1f / inverse_dt // per 4hour dt
-  final val splittableRandom: RandomNumberGenerator = RandomNumberGenerator()
   //  Possibility of Exponential Residence Times
   //  ******************************************
   //  All the samples drawn from these distributions represent days
