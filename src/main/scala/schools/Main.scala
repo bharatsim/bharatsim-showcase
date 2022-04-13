@@ -59,11 +59,11 @@ object Main extends LazyLogging {
     var beforeCount = 0
     val simulation = Simulation()
 
-    println("Bare Beta = " + Disease.lambda_S)
+    logger.info("Bare Beta = " + Disease.lambda_S)
     args.foreach(print)
 
     if (args.length != 0) {
-      println("Accepting arguments")
+      logger.info("Accepting arguments")
 
       // Initial Recovered Parameters
       Disease.recoveredFraction = args(0).toFloat / 100
@@ -92,9 +92,9 @@ object Main extends LazyLogging {
     }
     Disease.lambda_S = (1 - betaReduction) * Disease.lambda_S
 
-    println("Modified Beta = " + Disease.lambda_S)
-    println("Phase1 " + Disease.phase1 + " ends on day " + Disease.phase1_endDate)
-    println("Phase2 " + Disease.phase2 + " ends on day " + Disease.phase2_endDate)
+    logger.info("Modified Beta = " + Disease.lambda_S)
+    logger.info("Phase1 " + Disease.phase1 + " ends on day " + Disease.phase1_endDate)
+    logger.info("Phase2 " + Disease.phase2 + " ends on day " + Disease.phase2_endDate)
 
     simulation.ingestData { implicit context =>
       ingestCSVData("Pune_20k_school_population.csv", mapper)
@@ -375,7 +375,7 @@ object Main extends LazyLogging {
       if (result) {
         schoolsClosedOn = context.getCurrentStep * dt
         schoolsOpenedOn = schoolsClosedOn
-        println("Schools closed on day " + schoolsClosedOn)
+        logger.info("Schools closed on day " + schoolsClosedOn)
       }
       result
     }
@@ -383,7 +383,7 @@ object Main extends LazyLogging {
       val currentlyUnvaccinated = context.graphProvider.fetchCount("Person", ("vaccinationStatus" equ false)).toDouble
       val result = context.getCurrentStep >= unlockSchoolsAt * inverse_dt
       if (result) {
-        println("Schools opened on day " + schoolsOpenedOn + ", unvaccinated fraction " + currentlyUnvaccinated / ingestedPopulation)
+        logger.info("Schools opened on day " + schoolsOpenedOn + ", unvaccinated fraction " + currentlyUnvaccinated / ingestedPopulation)
       }
       result
     }
@@ -514,7 +514,7 @@ object Main extends LazyLogging {
       val conditionMet = context.getCurrentStep >= 0
       if (conditionMet) {
         vaccinationStarted = context.getCurrentStep
-        println("Vaccination started on day "+vaccinationStarted*dt)
+        logger.info("Vaccination started on day "+vaccinationStarted*dt)
       }
       conditionMet
     }
@@ -665,7 +665,7 @@ object Main extends LazyLogging {
       val result = getInfectedCount(context) >= 0 // If there are any infected at all, lockdown.
       if (result) {
         lockdownStartedOn = context.getCurrentStep * dt
-        println("Lockdown started on " + lockdownStartedOn)
+        logger.info("Lockdown started on " + lockdownStartedOn)
       }
       result
     }
@@ -703,25 +703,25 @@ object Main extends LazyLogging {
     val afterCountSusceptible = getCount(context, Susceptible)
     val afterCountRecovered = getCount(context, Recovered)
 
-    println("Susceptible: {}", afterCountSusceptible)
-    println("Recovered: {}", afterCountRecovered)
-    println("Vaccines administered: {}", vaccinesAdministered)
+    logger.info("Susceptible: {}", afterCountSusceptible)
+    logger.info("Recovered: {}", afterCountRecovered)
+    logger.info("Vaccines administered: {}", vaccinesAdministered)
 
-    println("Vaccination Started On: {}", vaccinationStarted)
-    println("Lockdown Started On: {}", lockdownStartedOn)
-    println("Schools Closed On: {}", schoolsClosedOn)
-    println("Schools Opened On: {}", schoolsOpenedOn)
+    logger.info("Vaccination Started On: {}", vaccinationStarted)
+    logger.info("Lockdown Started On: {}", lockdownStartedOn)
+    logger.info("Schools Closed On: {}", schoolsClosedOn)
+    logger.info("Schools Opened On: {}", schoolsOpenedOn)
 
-    println("Was infected by Asymptomatic: {}", context.graphProvider.fetchCount("Person", "wasInfectedBy" equ "Asymptomatic"))
-    println("Was infected by Presymptomatic: {}", context.graphProvider.fetchCount("Person", "wasInfectedBy" equ "Presymptomatic"))
-    println("Was infected by InfectedMild: {}", context.graphProvider.fetchCount("Person", "wasInfectedBy" equ "InfectedMild"))
-    println("Was infected by InfectedSevere: {}", context.graphProvider.fetchCount("Person", "wasInfectedBy" equ "InfectedSevere"))
-    println("Was infected by Hospitalised: {}", context.graphProvider.fetchCount("Person", "wasInfectedBy" equ "Hospitalised"))
-    println("Was infected by FOI: {}", context.graphProvider.fetchCount("Person", "wasInfectedBy" equ "FOI"))
+    logger.info("Was infected by Asymptomatic: {}", context.graphProvider.fetchCount("Person", "wasInfectedBy" equ "Asymptomatic"))
+    logger.info("Was infected by Presymptomatic: {}", context.graphProvider.fetchCount("Person", "wasInfectedBy" equ "Presymptomatic"))
+    logger.info("Was infected by InfectedMild: {}", context.graphProvider.fetchCount("Person", "wasInfectedBy" equ "InfectedMild"))
+    logger.info("Was infected by InfectedSevere: {}", context.graphProvider.fetchCount("Person", "wasInfectedBy" equ "InfectedSevere"))
+    logger.info("Was infected by Hospitalised: {}", context.graphProvider.fetchCount("Person", "wasInfectedBy" equ "Hospitalised"))
+    logger.info("Was infected by FOI: {}", context.graphProvider.fetchCount("Person", "wasInfectedBy" equ "FOI"))
 
-    println("Was infected at Home: {}", context.graphProvider.fetchCount("Person", "wasInfectedAt" equ "Home"))
-    println("Was infected at Office: {}", context.graphProvider.fetchCount("Person", "wasInfectedAt" equ "Office"))
-    println("Was infected at ClassRoom: {}", context.graphProvider.fetchCount("Person", "wasInfectedAt" equ "ClassRoom"))
+    logger.info("Was infected at Home: {}", context.graphProvider.fetchCount("Person", "wasInfectedAt" equ "Home"))
+    logger.info("Was infected at Office: {}", context.graphProvider.fetchCount("Person", "wasInfectedAt" equ "Office"))
+    logger.info("Was infected at ClassRoom: {}", context.graphProvider.fetchCount("Person", "wasInfectedAt" equ "ClassRoom"))
 
   }
 
