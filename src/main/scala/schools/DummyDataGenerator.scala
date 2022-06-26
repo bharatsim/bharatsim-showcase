@@ -21,6 +21,8 @@ object DummyDataGenerator {
     "WorkPlaceID"
   )
 
+  private val averageEmployeesPerOffice = 30
+
   val totalPopulation = 10_000
   val ESSENTIAL_WORKER_FRACTION = 0.2
   val PUBLIC_TRANSPORT_FRACTION = 0.3
@@ -35,7 +37,7 @@ object DummyDataGenerator {
 
 
   // ToDo: Create a teacher job label, assign to classrooms and schools. Check if a teacher has a class assigned.
-  private val averageEmployeesPerOffice = 30
+  
   var teachcount = 0
 
   def main(): Unit = {
