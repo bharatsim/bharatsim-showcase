@@ -77,17 +77,6 @@ class SIRAgewiseOutput(context: Context) extends CSVSpecs {
 
     val row = List(
       context.getCurrentStep * Main.dt,
-//      graphProvider.fetchCount(label, "infectionState" equ Susceptible and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ Exposed and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ Asymptomatic and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ Presymptomatic and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ InfectedMild and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ InfectedSevere and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ Recovered and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ Hospitalised and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ Dead and ("age" gte 0) and ("age" lt 18)),
-//      Main.ageWiseVaccinesAdministered(0) + Main.ageWiseVaccinesAdministered(1),
-//      graphProvider.fetchCount(label, ("age" gte 0) and ("age" lt 18)) - graphProvider.fetchCount(label, (("vaccinationStatus" equ false) and ("infectionState" equ Susceptible)) and ("age" gte 0) and ("age" lt 18)),
       countMap.getOrElse(Susceptible.toString + "0-18", 0),
       countMap.getOrElse(Exposed.toString + "0-18", 0),
       countMap.getOrElse(Asymptomatic.toString + "0-18", 0),
