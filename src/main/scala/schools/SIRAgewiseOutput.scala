@@ -6,6 +6,8 @@ import com.bharatsim.engine.graph.patternMatcher.MatchCondition._
 import com.bharatsim.engine.listeners.CSVSpecs
 import schools.InfectionStatus._
 
+import scala.collection.mutable
+
 class SIRAgewiseOutput(context: Context) extends CSVSpecs {
 
   override def getHeaders: List[String] =
@@ -63,58 +65,75 @@ class SIRAgewiseOutput(context: Context) extends CSVSpecs {
   override def getRows(): List[List[Any]] = {
     val graphProvider = context.graphProvider
     val label = "Person"
+    val countMap = mutable.HashMap.empty[String, Int]
+    val nodes = graphProvider.fetchNodes(label)
+    nodes.foreach(node => {
+      val infectedState = node.getParams.apply("infectionState").toString
+      val ageCateg = map_ages_to_categs(node.getParams.apply("age").toString.toInt)
+      val existingCount = countMap.getOrElse(infectedState + ageCateg, 0)
+      countMap.put(infectedState + ageCateg, existingCount + 1)
+
+    })
+
     val row = List(
       context.getCurrentStep * Main.dt,
-      graphProvider.fetchCount(label, "infectionState" equ Susceptible and ("age" gte 0) and ("age" lt 18)),
-      graphProvider.fetchCount(label, "infectionState" equ Exposed and ("age" gte 0) and ("age" lt 18)),
-      graphProvider.fetchCount(label, "infectionState" equ Asymptomatic and ("age" gte 0) and ("age" lt 18)),
-      graphProvider.fetchCount(label, "infectionState" equ Presymptomatic and ("age" gte 0) and ("age" lt 18)),
-      graphProvider.fetchCount(label, "infectionState" equ InfectedMild and ("age" gte 0) and ("age" lt 18)),
-      graphProvider.fetchCount(label, "infectionState" equ InfectedSevere and ("age" gte 0) and ("age" lt 18)),
-      graphProvider.fetchCount(label, "infectionState" equ Recovered and ("age" gte 0) and ("age" lt 18)),
-      graphProvider.fetchCount(label, "infectionState" equ Hospitalised and ("age" gte 0) and ("age" lt 18)),
-      graphProvider.fetchCount(label, "infectionState" equ Dead and ("age" gte 0) and ("age" lt 18)),
+      countMap.getOrElse(Susceptible.toString + "0-18", 0),
+      countMap.getOrElse(Exposed.toString + "0-18", 0),
+      countMap.getOrElse(Asymptomatic.toString + "0-18", 0),
+      countMap.getOrElse(Presymptomatic.toString + "0-18", 0),
+      countMap.getOrElse(InfectedMild.toString + "0-18", 0),
+      countMap.getOrElse(InfectedSevere.toString + "0-18", 0),
+      countMap.getOrElse(Recovered.toString + "0-18", 0),
+      countMap.getOrElse(Hospitalised.toString + "0-18", 0),
+      countMap.getOrElse(Dead.toString + "0-18", 0),
       Main.ageWiseVaccinesAdministered(0) + Main.ageWiseVaccinesAdministered(1),
       graphProvider.fetchCount(label, ("age" gte 0) and ("age" lt 18)) - graphProvider.fetchCount(label, (("vaccinationStatus" equ false) and ("infectionState" equ Susceptible)) and ("age" gte 0) and ("age" lt 18)),
 
-      graphProvider.fetchCount(label, "infectionState" equ Susceptible and ("age" gte 18) and ("age" lt 45)),
-      graphProvider.fetchCount(label, "infectionState" equ Exposed and ("age" gte 18) and ("age" lt 45)),
-      graphProvider.fetchCount(label, "infectionState" equ Asymptomatic and ("age" gte 18) and ("age" lt 45)),
-      graphProvider.fetchCount(label, "infectionState" equ Presymptomatic and ("age" gte 18) and ("age" lt 45)),
-      graphProvider.fetchCount(label, "infectionState" equ InfectedMild and ("age" gte 18) and ("age" lt 45)),
-      graphProvider.fetchCount(label, "infectionState" equ InfectedSevere and ("age" gte 18) and ("age" lt 45)),
-      graphProvider.fetchCount(label, "infectionState" equ Recovered and ("age" gte 18) and ("age" lt 45)),
-      graphProvider.fetchCount(label, "infectionState" equ Hospitalised and ("age" gte 18) and ("age" lt 45)),
-      graphProvider.fetchCount(label, "infectionState" equ Dead and ("age" gte 18) and ("age" lt 45)),
+      countMap.getOrElse(Susceptible.toString + "18-45", 0),
+      countMap.getOrElse(Exposed.toString + "18-45", 0),
+      countMap.getOrElse(Asymptomatic.toString + "18-45", 0),
+      countMap.getOrElse(Presymptomatic.toString + "18-45", 0),
+      countMap.getOrElse(InfectedMild.toString + "18-45", 0),
+      countMap.getOrElse(InfectedSevere.toString + "18-45", 0),
+      countMap.getOrElse(Recovered.toString + "18-45", 0),
+      countMap.getOrElse(Hospitalised.toString + "18-45", 0),
+      countMap.getOrElse(Dead.toString + "18-45", 0),
       Main.ageWiseVaccinesAdministered(2) + Main.ageWiseVaccinesAdministered(3),
       graphProvider.fetchCount(label, ("age" gte 18) and ("age" lt 45)) - graphProvider.fetchCount(label, (("vaccinationStatus" equ false) and ("infectionState" equ Susceptible)) and ("age" gte 18) and ("age" lt 45)),
 
-      graphProvider.fetchCount(label, "infectionState" equ Susceptible and ("age" gte 45) and ("age" lt 60)),
-      graphProvider.fetchCount(label, "infectionState" equ Exposed and ("age" gte 45) and ("age" lt 60)),
-      graphProvider.fetchCount(label, "infectionState" equ Asymptomatic and ("age" gte 45) and ("age" lt 60)),
-      graphProvider.fetchCount(label, "infectionState" equ Presymptomatic and ("age" gte 45) and ("age" lt 60)),
-      graphProvider.fetchCount(label, "infectionState" equ InfectedMild and ("age" gte 45) and ("age" lt 60)),
-      graphProvider.fetchCount(label, "infectionState" equ InfectedSevere and ("age" gte 45) and ("age" lt 60)),
-      graphProvider.fetchCount(label, "infectionState" equ Recovered and ("age" gte 45) and ("age" lt 60)),
-      graphProvider.fetchCount(label, "infectionState" equ Hospitalised and ("age" gte 45) and ("age" lt 60)),
-      graphProvider.fetchCount(label, "infectionState" equ Dead and ("age" gte 45) and ("age" lt 60)),
+      countMap.getOrElse(Susceptible.toString + "45-60", 0),
+      countMap.getOrElse(Exposed.toString + "45-60", 0),
+      countMap.getOrElse(Asymptomatic.toString + "45-60", 0),
+      countMap.getOrElse(Presymptomatic.toString + "45-60", 0),
+      countMap.getOrElse(InfectedMild.toString + "45-60", 0),
+      countMap.getOrElse(InfectedSevere.toString + "45-60", 0),
+      countMap.getOrElse(Recovered.toString + "45-60", 0),
+      countMap.getOrElse(Hospitalised.toString + "45-60", 0),
+      countMap.getOrElse(Dead.toString + "45-60", 0),
       Main.ageWiseVaccinesAdministered(4) + Main.ageWiseVaccinesAdministered(5),
       graphProvider.fetchCount(label, ("age" gte 45) and ("age" lt 60)) - graphProvider.fetchCount(label, (("vaccinationStatus" equ false) and ("infectionState" equ Susceptible)) and ("age" gte 45) and ("age" lt 60)),
 
-      graphProvider.fetchCount(label, "infectionState" equ Susceptible and ("age" gte 60)),
-      graphProvider.fetchCount(label, "infectionState" equ Exposed and ("age" gte 60)),
-      graphProvider.fetchCount(label, "infectionState" equ Asymptomatic and ("age" gte 60)),
-      graphProvider.fetchCount(label, "infectionState" equ Presymptomatic and ("age" gte 60)),
-      graphProvider.fetchCount(label, "infectionState" equ InfectedMild and ("age" gte 60)),
-      graphProvider.fetchCount(label, "infectionState" equ InfectedSevere and ("age" gte 60)),
-      graphProvider.fetchCount(label, "infectionState" equ Recovered and ("age" gte 60)),
-      graphProvider.fetchCount(label, "infectionState" equ Hospitalised and ("age" gte 60)),
-      graphProvider.fetchCount(label, "infectionState" equ Dead and ("age" gte 60)),
+      countMap.getOrElse(Susceptible.toString + "60+", 0),
+      countMap.getOrElse(Exposed.toString + "60+", 0),
+      countMap.getOrElse(Asymptomatic.toString + "60+", 0),
+      countMap.getOrElse(Presymptomatic.toString + "60+", 0),
+      countMap.getOrElse(InfectedMild.toString + "60+", 0),
+      countMap.getOrElse(InfectedSevere.toString + "60+", 0),
+      countMap.getOrElse(Recovered.toString + "60+", 0),
+      countMap.getOrElse(Hospitalised.toString + "60+", 0),
+      countMap.getOrElse(Dead.toString + "60+", 0),
       Main.ageWiseVaccinesAdministered(6) + Main.ageWiseVaccinesAdministered(7) + Main.ageWiseVaccinesAdministered(8) + Main.ageWiseVaccinesAdministered(9),
       graphProvider.fetchCount(label, ("age" gte 60)) - graphProvider.fetchCount(label, (("vaccinationStatus" equ false) and ("infectionState" equ Susceptible)) and ("age" gte 60))
     )
     List(row)
 
+  }
+
+  def map_ages_to_categs(age: Int): String = {
+    if (0 <= age && age < 18) {"0-18"}
+    else if (18 <= age && age < 45) {"18-45"}
+    else if (45 <= age && age < 60) {"45-60"}
+    else {"60+"}
   }
 
 }

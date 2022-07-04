@@ -121,7 +121,8 @@ object Disease {
   var vaccinatedOneShotFraction: Float = 20f / 100
   var vaccinatedTwoShotFraction: Float = 10f / 100
   var lambda_S: Double = 0.7
-  var vaccinationRate: Double = 0.0d / 100d
+//  var vaccinationRate: Double = 0.0d / 100d
+  var vaccinationRate: Double = 0.4d / 100d
 
   // *************************************************//
 
