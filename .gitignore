@@ -9,7 +9,7 @@ target
 *.sh
 *.iml
 /local
-project/
+project/*
 !project/assembly.sbt
 !project/build.properties
 .*
