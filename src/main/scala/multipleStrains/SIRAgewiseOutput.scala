@@ -8,7 +8,7 @@ import multipleStrains.InfectionStatus._
 
 import scala.collection.mutable
 
-class SIRAgewiseOutput(context: Context) extends CSVSpecs {
+class SIRAgewiseOutput(context: Context) extends CSVSpecs { // TODO: Arrange the output better! Maybe remove the age-wise output?
 
   override def getHeaders: List[String] =
     List(
@@ -245,63 +245,5 @@ class SIRAgewiseOutput(context: Context) extends CSVSpecs {
     else if (45 <= age && age < 60) {"45-60"}
     else {"60+"}
   }
-
-
-  //  override def getRows(): List[List[Any]] = {
-//    val graphProvider = context.graphProvider
-//    val label = "Person"
-//    val row = List(
-//      context.getCurrentStep * Main.dt,
-//      graphProvider.fetchCount(label, "infectionState" equ Susceptible and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ Exposed and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ Asymptomatic and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ PreSymptomatic and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ InfectedMild and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ InfectedSevere and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ Recovered and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ Hospitalised and ("age" gte 0) and ("age" lt 18)),
-//      graphProvider.fetchCount(label, "infectionState" equ Dead and ("age" gte 0) and ("age" lt 18)),
-//      Main.ageWiseVaccinesAdministered(0) + Main.ageWiseVaccinesAdministered(1),
-//      graphProvider.fetchCount(label, ("age" gte 0) and ("age" lt 18)) - graphProvider.fetchCount(label, (("vaccinationStatus" equ false) and ("infectionState" equ Susceptible)) and ("age" gte 0) and ("age" lt 18)),
-//
-//      graphProvider.fetchCount(label, "infectionState" equ Susceptible and ("age" gte 18) and ("age" lt 45)),
-//      graphProvider.fetchCount(label, "infectionState" equ Exposed and ("age" gte 18) and ("age" lt 45)),
-//      graphProvider.fetchCount(label, "infectionState" equ Asymptomatic and ("age" gte 18) and ("age" lt 45)),
-//      graphProvider.fetchCount(label, "infectionState" equ PreSymptomatic and ("age" gte 18) and ("age" lt 45)),
-//      graphProvider.fetchCount(label, "infectionState" equ InfectedMild and ("age" gte 18) and ("age" lt 45)),
-//      graphProvider.fetchCount(label, "infectionState" equ InfectedSevere and ("age" gte 18) and ("age" lt 45)),
-//      graphProvider.fetchCount(label, "infectionState" equ Recovered and ("age" gte 18) and ("age" lt 45)),
-//      graphProvider.fetchCount(label, "infectionState" equ Hospitalised and ("age" gte 18) and ("age" lt 45)),
-//      graphProvider.fetchCount(label, "infectionState" equ Dead and ("age" gte 18) and ("age" lt 45)),
-//      Main.ageWiseVaccinesAdministered(2) + Main.ageWiseVaccinesAdministered(3),
-//      graphProvider.fetchCount(label, ("age" gte 18) and ("age" lt 45)) - graphProvider.fetchCount(label, (("vaccinationStatus" equ false) and ("infectionState" equ Susceptible)) and ("age" gte 18) and ("age" lt 45)),
-//
-//      graphProvider.fetchCount(label, "infectionState" equ Susceptible and ("age" gte 45) and ("age" lt 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ Exposed and ("age" gte 45) and ("age" lt 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ Asymptomatic and ("age" gte 45) and ("age" lt 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ PreSymptomatic and ("age" gte 45) and ("age" lt 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ InfectedMild and ("age" gte 45) and ("age" lt 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ InfectedSevere and ("age" gte 45) and ("age" lt 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ Recovered and ("age" gte 45) and ("age" lt 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ Hospitalised and ("age" gte 45) and ("age" lt 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ Dead and ("age" gte 45) and ("age" lt 60)),
-//      Main.ageWiseVaccinesAdministered(4) + Main.ageWiseVaccinesAdministered(5),
-//      graphProvider.fetchCount(label, ("age" gte 45) and ("age" lt 60)) - graphProvider.fetchCount(label, (("vaccinationStatus" equ false) and ("infectionState" equ Susceptible)) and ("age" gte 45) and ("age" lt 60)),
-//
-//      graphProvider.fetchCount(label, "infectionState" equ Susceptible and ("age" gte 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ Exposed and ("age" gte 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ Asymptomatic and ("age" gte 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ PreSymptomatic and ("age" gte 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ InfectedMild and ("age" gte 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ InfectedSevere and ("age" gte 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ Recovered and ("age" gte 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ Hospitalised and ("age" gte 60)),
-//      graphProvider.fetchCount(label, "infectionState" equ Dead and ("age" gte 60)),
-//      Main.ageWiseVaccinesAdministered(6) + Main.ageWiseVaccinesAdministered(7) + Main.ageWiseVaccinesAdministered(8) + Main.ageWiseVaccinesAdministered(9),
-//      graphProvider.fetchCount(label, ("age" gte 60)) - graphProvider.fetchCount(label, (("vaccinationStatus" equ false) and ("infectionState" equ Susceptible)) and ("age" gte 60))
-//    )
-//    List(row)
-//
-//  }
 
 }

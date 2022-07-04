@@ -46,7 +46,6 @@ override def getHeaders: List[String] =
     val graphProvider = context.graphProvider
     val label = "Person"
     val countMap  = mutable.HashMap.empty[String, Int]
-//    val countMap2 = mutable.HashMap.empty[String, Int]  // isn't necessary, not deleting in case you want it -riz
 
     val nodes = graphProvider.fetchNodes(label)
     nodes.foreach(node => {

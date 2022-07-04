@@ -46,7 +46,7 @@ case class Person(
     gamma2MaxSecondShot: Double = -1.0,
     infectedPeople: Int = 0,
     wasInfectedAt: String = "",
-    wasInfectedBy: String = ""
+    wasInfectedBy: String = "" // TODO: Include a wasInfected2By, for the second strain
 ) extends Agent {
 
   def decodeNode(classType: String, node: GraphNode): Network = {

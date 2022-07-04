@@ -23,7 +23,7 @@ import schools.models._
 object Main extends LazyLogging {
 
   final val inverse_dt = 2
-  final val dt: Double = 1f / inverse_dt // per 4hour dt
+  final val dt: Double = 1f / inverse_dt // per 12 hour dt
   final val splittableRandom: RandomNumberGenerator = RandomNumberGenerator()
 
   private val myTick: ScheduleUnit = new ScheduleUnit(1)
@@ -48,17 +48,15 @@ object Main extends LazyLogging {
   var lockdownEveryone: Boolean = false
   var lockdownTriggerFraction: Double = 0.05
 
-  var betaReduction: Double = 0.0
-
   var ageWiseVaccinesAdministered: Array[Int] = Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-
-  var rampUpBeta = false
 
   private var vaccinationStarted: Double = 0
   private var ingestedPopulation = 0
   private var schoolsClosedOn: Double = 0
   private var schoolsOpenedOn: Double = 0
   private var lockdownStartedOn: Double = 0
+
+  final val rampUpBeta = false
 
   def main(args: Array[String]): Unit = {
     var beforeCount = 0
@@ -75,7 +73,7 @@ object Main extends LazyLogging {
       outputPath = args(1)
 
       // Initial Recovered Parameters
-      Disease.recoveredFraction = args(2).toFloat / 100
+      Disease.initialRecoveredFraction = args(2).toFloat / 100
 
       // Initial Vaccinated Parameters
       prevaccinate = args(3) == "prevaccinate"
@@ -91,31 +89,22 @@ object Main extends LazyLogging {
       closeSchools = args(9) == "closeSchools"
       unlockSchoolsAt = args(10).toInt
 
-
+      // Lockdown
       lockdownEveryone = args(11) == "lockdown"
       lockdownTriggerFraction = args(12).toDouble // also for vaccines
 
-      betaReduction = args(13).toDouble
-
-      rampUpBeta = args(14) == "rampUpBeta"
-
     }
-    Disease.lambda_S = (1 - betaReduction) * Disease.lambda_S
 
-    logger.info("Modified Beta = " + Disease.lambda_S)
     logger.info("Phase1 " + Disease.phase1 + " ends on day " + Disease.phase1_endDate)
     logger.info("Phase2 " + Disease.phase2 + " ends on day " + Disease.phase2_endDate)
 
     simulation.ingestData { implicit context =>
       ingestCSVData(inputPath, mapper)
-      //      ingestCSVData("dummy10k.csv", mapper)
       logger.debug("Ingestion done")
     }
 
-
     simulation.defineSimulation { implicit context =>
       ingestedPopulation = context.graphProvider.fetchCount("Person", EmptyPattern())
-
 
       if (prevaccinate) {
         prevaccination(shot = 1)
@@ -158,17 +147,12 @@ object Main extends LazyLogging {
       val rn = splittableRandom.nextDouble()
       val closeschoolslabel = if (unlockSchoolsAt > 0) 1 else 0
       val lockdownlabel = if (lockdownEveryone) 1 else 0
-      val betaramplabel = if (rampUpBeta) 1 else 0
 
-      var label = "_IR_" + (Disease.recoveredFraction * 100).toInt + "_IV_" + (Disease.vaccinatedOneShotFraction * 100).toInt + "_" + (Disease.vaccinatedTwoShotFraction * 100).toInt
+      var label = "_IR_" + (Disease.initialRecoveredFraction * 100).toInt + "_IV_" + (Disease.vaccinatedOneShotFraction * 100).toInt + "_" + (Disease.vaccinatedTwoShotFraction * 100).toInt
 
       label += "_VR_" + (Disease.vaccinationRate * 100)
       label += "_closeSchools_" + closeschoolslabel + "_unlockSchoolsAt_" + unlockSchoolsAt
       label += "_lockdown_" + lockdownlabel
-
-      label += "_betaReduction_" + (betaReduction * 100).toInt
-
-      label += "_rampedUpBeta_" + betaramplabel
 
       SimulationListenerRegistry.register(
         new CsvOutputGenerator(outputPath + "total_output" + label + "_" + rn + ".csv", new SIROutput(context))
@@ -315,7 +299,7 @@ object Main extends LazyLogging {
     if (x <= Disease.asymptomaticFraction) {
       "Asymptomatic"
     }
-    else if (Disease.asymptomaticFraction < x && x <= (Disease.recoveredFraction + Disease.asymptomaticFraction)) {
+    else if (Disease.asymptomaticFraction < x && x <= (Disease.initialRecoveredFraction + Disease.asymptomaticFraction)) {
       "Recovered"
     }
     else {

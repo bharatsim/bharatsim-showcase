@@ -5,9 +5,9 @@ import com.bharatsim.engine.distributions.{LogNormal}
 
 object Disease {
 
-  var beta: Double = 0.7
-  var beta2: Double = 0.7*0.7/0.3
-//
+  var beta: Double = 1.2
+  var beta2: Double = 1.2*0.7/0.3
+
   final val initialExposedFraction1 = 0.01
   final val initialExposedFraction2 = 0.0
 
@@ -16,12 +16,6 @@ object Disease {
 
   var initialRecoveredFraction1: Float = 00f / 100
   var initialRecoveredFraction2: Float = 00f / 100
-//
-//  final val severeInfectedFraction = 0.2
-//  final val severeInfectedFraction2 = 0.2
-//
-//  final val deathFraction = 0.02
-//  final val deathFraction2 = 0.02
 
   final val ageStratifiedBetaMultiplier = HashMap(
      9 -> 1.0,
@@ -72,51 +66,49 @@ object Disease {
      99 -> 0.16190
    )
 
+  //  Possibility of Lognormal Residence Times
+  //  ******************************************
+  //  All the samples drawn from these distributions represent days
+  final val exposedDurationProbabilityDistribution = LogNormal(4.5, 1.5)
+  final val presymptomaticDurationProbabilityDistribution = LogNormal(1.1, 0.9)
+  final val asymptomaticDurationProbabilityDistribution = LogNormal(8, 2)
+  final val mildSymptomaticDurationProbabilityDistribution = LogNormal(8, 2)
+  final val severeSymptomaticDurationProbabilityDistribution = LogNormal(1.5, 2.0)
+  final val hospitalisedDurationProbabilityDistribution = LogNormal(18.1, 6.3)
 
-////  All the samples drawn from these distributions represent days
-//  final val exposedDurationProbabilityDistribution = LogNormal(4.6, 4.8)
-//  final val presymptomaticDurationProbabilityDistribution = LogNormal(1, 1)
-//  final val asymptomaticDurationProbabilityDistribution = LogNormal(8, 2)
-//  final val mildSymptomaticDurationProbabilityDistribution = LogNormal(8, 2)
-//  final val severeSymptomaticDurationProbabilityDistribution = LogNormal(14, 2.4)
-
-  final val exposedDurationProbabilityDistribution = Exponential(4.6)
-  final val presymptomaticDurationProbabilityDistribution = Exponential(1)
-  final val asymptomaticDurationProbabilityDistribution = Exponential(8)
-  final val mildSymptomaticDurationProbabilityDistribution = Exponential(8)
-  final val severeSymptomaticDurationProbabilityDistribution = Exponential(14)
-  final val hospitalisedDurationProbabilityDistribution = Exponential(7)
+//   // Possibility of Exponential Residence Times
+//   // ******************************************
+//   // All the samples drawn from these distributions represent days
+//  final val exposedDurationProbabilityDistribution = Exponential(4.5)
+//  final val presymptomaticDurationProbabilityDistribution = Exponential(1.1)
+//  final val asymptomaticDurationProbabilityDistribution = Exponential(8)
+//  final val mildSymptomaticDurationProbabilityDistribution = Exponential(8)
+//  final val severeSymptomaticDurationProbabilityDistribution = Exponential(18.1)
+//  final val hospitalisedDurationProbabilityDistribution = Exponential(18.1)
 
   final val inverse_dt = 2
   final val dt = 1.toDouble / inverse_dt
 
-
-  //  Does not have any effect, can be used to model reduced chances of catching an infection due to masking or such other interventions
-//  final val betaMultiplier = 1.0
-//  final val fractionalTransmissionReduction = 0.2
-
-  //    TODO: Add the change to master - Jayanta / Philip
   var vaccinationRate = 0.05
-//  final val vaccinatedGammaFractionalIncrease = 2.0
 
-   // Vaccination Phase Details ***********************//
-   final val tau = 0.8
-   final val phase1 = List(69, 79, 89, 99)
-   final val phase2 = List(49, 59, 69, 79, 89, 99)
-   final val phase3 = List(29, 39, 49, 59, 69, 79, 89, 99)
-   final val phase1_endDate = 0 // Changed from 30 (because we're starting with ~80% of the 60+ vaccinated already)
+  // Vaccination Phase Details ***********************//
+  final val tau = 0.8
+  final val phase1 = List(69, 79, 89, 99)
+  final val phase2 = List(49, 59, 69, 79, 89, 99)
+  final val phase3 = List(29, 39, 49, 59, 69, 79, 89, 99)
+  final val phase1_endDate = 0 // Changed from 30 (because we're starting with ~80% of the 60+ vaccinated already)
 
   final val phase2_endDate = 30 // Idem: from 60
   final val Delta = 90
-   final val vaccinatedBetaMultiplier_firstShot = 1.0 - 0.272
-   final val vaccinatedBetaMultiplier_secondShot = 1.0 - 0.441
-   final val vaccinatedGammaFractionalIncrease_firstShot = 1 - 0.335
-   final val vaccinatedGammaFractionalIncrease_secondShot = 1 - 0.598
-   final val fractionalTransmissionReduction = 0.4
-   val nClassrooms = 100
+  final val vaccinatedBetaMultiplier_firstShot = 1.0 - 0.272
+  final val vaccinatedBetaMultiplier_secondShot = 1.0 - 0.441
+  final val vaccinatedGammaFractionalIncrease_firstShot = 1 - 0.335
+  final val vaccinatedGammaFractionalIncrease_secondShot = 1 - 0.598
+  final val fractionalTransmissionReduction = 0.4
+  val nClassrooms = 100
 
-   var vaccinatedOneShotFraction: Float = 20f / 100
-   var vaccinatedTwoShotFraction: Float = 10f / 100
+  var vaccinatedOneShotFraction: Float = 20f / 100
+  var vaccinatedTwoShotFraction: Float = 10f / 100
 
 
 
