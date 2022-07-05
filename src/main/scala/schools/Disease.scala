@@ -18,6 +18,24 @@ object Disease {
   final val myTick: ScheduleUnit = new ScheduleUnit(1)
   final val myDay: ScheduleUnit = new ScheduleUnit(myTick * inverse_dt)
 
+  // Default values of arguments:
+
+  var inputPath: String = "Pune_20k_school_population.csv"
+  var outputPath: String = "./"
+
+  var vaccinatePeople: Boolean = false
+  var closeSchools: Boolean = false
+  var unlockSchoolsAt: Int = 0
+
+  var prevaccinate: Boolean = false
+  var prevaccinateFamilies: Boolean = false
+
+  var lockdownEveryone: Boolean = false
+  var lockdownTriggerFraction: Float = 5
+
+  var rampUpBeta = false
+
+
 
   // Initial Population ***************************//
 

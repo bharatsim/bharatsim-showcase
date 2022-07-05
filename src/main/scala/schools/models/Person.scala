@@ -7,7 +7,7 @@ import com.bharatsim.engine.graph.GraphNode
 import com.bharatsim.engine.models.{Network, StatefulAgent}
 import schools.{Disease, Main}
 import schools.InfectionStatus._
-import schools.Main.{firstShotsAvailableThisTick, prevaccinateFamilies, secondShotsAvailableThisTick, vaccinatePeople}
+import schools.Main.{firstShotsAvailableThisTick, secondShotsAvailableThisTick}
 import schools.diseaseStates._
 
 case class Person(agentId: Long,
@@ -96,7 +96,7 @@ case class Person(agentId: Long,
 
   def shouldGetVaccine(t: Double, age: Int): Boolean = {
 
-    if (prevaccinateFamilies && this.prevaccinate && this.vaccineShots == 0) {
+    if (Disease.prevaccinateFamilies && this.prevaccinate && this.vaccineShots == 0) {
       // That means this person should've been prevaccinated but wasn't, so vaccinate them now!
       return true
     }
@@ -153,7 +153,7 @@ case class Person(agentId: Long,
   }
 
 
-  if (vaccinatePeople) {
+  if (Disease.vaccinatePeople) {
     addBehaviour(vaccinatePerson)
   }
 

@@ -24,24 +24,11 @@ object Main extends LazyLogging {
 
   final val splittableRandom: RandomNumberGenerator = RandomNumberGenerator()
 
-  var inputPath: String = "Pune_20k_school_population.csv"
-  var outputPath: String = "./"
-
-  var vaccinatePeople: Boolean = false
-  var closeSchools: Boolean = false
-  var unlockSchoolsAt: Int = 0
-
-  var prevaccinate: Boolean = false
-  var prevaccinateFamilies: Boolean = false
-
   var vaccinesAdministered: Int = 0
   var vaccinesAdministeredThisTick: Int = 0
   var vaccinesAvailableToday: Int = 0
   var firstShotsAvailableThisTick: Int = 0
   var secondShotsAvailableThisTick: Int = 0
-
-  var lockdownEveryone: Boolean = false
-  var lockdownTriggerFraction: Double = 0.05
 
   var ageWiseVaccinesAdministered: Array[Int] = Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
@@ -51,7 +38,6 @@ object Main extends LazyLogging {
   private var schoolsOpenedOn: Double = 0
   private var lockdownStartedOn: Double = 0
 
-  final val rampUpBeta = false
 
   def main(args: Array[String]): Unit = {
     var beforeCount = 0
@@ -64,29 +50,29 @@ object Main extends LazyLogging {
       logger.info("Accepting arguments")
 
       // Input and output csv file paths
-      inputPath = args(0)
-      outputPath = args(1)
+      Disease.inputPath = args(0)
+      Disease.outputPath = args(1)
 
       // Initial Recovered Parameters
       Disease.initialRecoveredFraction = args(2).toFloat / 100
 
       // Initial Vaccinated Parameters
-      prevaccinate = args(3) == "prevaccinate"
-      prevaccinateFamilies = args(4) == "families"
+      Disease.prevaccinate = args(3) == "prevaccinate"
+      Disease.prevaccinateFamilies = args(4) == "families"
       Disease.vaccinatedOneShotFraction = args(5).toFloat / 100
       Disease.vaccinatedTwoShotFraction = args(6).toFloat / 100
 
       // Rolling Vaccination Parameters
-      vaccinatePeople = args(7) == "rollingVaccinations"
+      Disease.vaccinatePeople = args(7) == "rollingVaccinations"
       Disease.vaccinationRate = args(8).toDouble / 100d
 
       // Close Schools
-      closeSchools = args(9) == "closeSchools"
-      unlockSchoolsAt = args(10).toInt
+      Disease.closeSchools = args(9) == "closeSchools"
+      Disease.unlockSchoolsAt = args(10).toInt
 
       // Lockdown
-      lockdownEveryone = args(11) == "lockdown"
-      lockdownTriggerFraction = args(12).toDouble // also for vaccines
+      Disease.lockdownEveryone = args(11) == "lockdown"
+      Disease.lockdownTriggerFraction = args(12).toFloat / 100 // also for vaccines
 
     }
 
@@ -94,25 +80,25 @@ object Main extends LazyLogging {
     logger.info("Phase2 " + Disease.phase2 + " ends on day " + Disease.phase2_endDate)
 
     simulation.ingestData { implicit context =>
-      ingestCSVData(inputPath, mapper)
+      ingestCSVData(Disease.inputPath, mapper)
       logger.debug("Ingestion done")
     }
 
     simulation.defineSimulation { implicit context =>
       ingestedPopulation = context.graphProvider.fetchCount("Person", EmptyPattern())
 
-      if (prevaccinate) {
+      if (Disease.prevaccinate) {
         prevaccination(shot = 1)
         prevaccination(shot = 2)
       }
 
-      if (vaccinatePeople) {
+      if (Disease.vaccinatePeople) {
         vaccination
       }
 
       closeSchoolsUntil
 
-      if (lockdownEveryone) {
+      if (Disease.lockdownEveryone) {
         lockdown
       }
 
@@ -140,23 +126,23 @@ object Main extends LazyLogging {
       registerState[DeadState]
 
       val rn = splittableRandom.nextDouble()
-      val closeschoolslabel = if (unlockSchoolsAt > 0) 1 else 0
-      val lockdownlabel = if (lockdownEveryone) 1 else 0
+      val closeschoolslabel = if (Disease.unlockSchoolsAt > 0) 1 else 0
+      val lockdownlabel = if (Disease.lockdownEveryone) 1 else 0
 
       var label = "_IR_" + (Disease.initialRecoveredFraction * 100).toInt + "_IV_" + (Disease.vaccinatedOneShotFraction * 100).toInt + "_" + (Disease.vaccinatedTwoShotFraction * 100).toInt
 
       label += "_VR_" + (Disease.vaccinationRate * 100)
-      label += "_closeSchools_" + closeschoolslabel + "_unlockSchoolsAt_" + unlockSchoolsAt
+      label += "_closeSchools_" + closeschoolslabel + "_unlockSchoolsAt_" + Disease.unlockSchoolsAt
       label += "_lockdown_" + lockdownlabel
 
       SimulationListenerRegistry.register(
-        new CsvOutputGenerator(outputPath + "total_output" + label + "_" + rn + ".csv", new SIROutput(context))
+        new CsvOutputGenerator(Disease.outputPath + "total_output" + label + "_" + rn + ".csv", new SIROutput(context))
       )
       SimulationListenerRegistry.register(
-        new CsvOutputGenerator(outputPath + "agewise_output" + label + "_" + rn + ".csv", new SIRAgewiseOutput(context))
+        new CsvOutputGenerator(Disease.outputPath + "agewise_output" + label + "_" + rn + ".csv", new SIRAgewiseOutput(context))
       )
       SimulationListenerRegistry.register(
-        new CsvOutputGenerator(outputPath + "infectioninfo_output" + label + "_" + rn + ".csv", new InfectionInfoOutput(context))
+        new CsvOutputGenerator(Disease.outputPath + "infectioninfo_output" + label + "_" + rn + ".csv", new InfectionInfoOutput(context))
       )
     }
 
@@ -370,7 +356,7 @@ object Main extends LazyLogging {
     }
     val deactivationCondition = (context: Context) => {
       val currentlyUnvaccinated = context.graphProvider.fetchCount("Person", ("vaccinationStatus" equ false)).toDouble
-      val result = context.getCurrentStep >= unlockSchoolsAt * Disease.inverse_dt
+      val result = context.getCurrentStep >= Disease.unlockSchoolsAt * Disease.inverse_dt
       if (result) {
         logger.info("Schools opened on day " + schoolsOpenedOn + ", unvaccinated fraction " + currentlyUnvaccinated / ingestedPopulation)
       }
@@ -501,7 +487,7 @@ object Main extends LazyLogging {
     val interventionName = "vaccination"
     val activationCondition = (context: Context) => {
 //      val conditionMet = context.getCurrentStep >= 0
-    val conditionMet = getInfectedCount(context) >= lockdownTriggerFraction*ingestedPopulation  // vaccines trigger with lockdown
+    val conditionMet = getInfectedCount(context) >= Disease.lockdownTriggerFraction*ingestedPopulation  // vaccines trigger with lockdown
       if (conditionMet) {
         vaccinationStarted = context.getCurrentStep
         logger.info("Vaccination started on day "+vaccinationStarted*Disease.dt)
@@ -652,7 +638,7 @@ object Main extends LazyLogging {
     val LockdownDurationDays = 1000 // Lockdown goes on forever
     val interventionName = "lockdown"
     val activationCondition = (context: Context) => {
-      val result = getInfectedCount(context) >= lockdownTriggerFraction*ingestedPopulation // If there more than the trigger fraction lockdown.
+      val result = getInfectedCount(context) >= Disease.lockdownTriggerFraction*ingestedPopulation // If there more than the trigger fraction lockdown.
       if (result) {
         lockdownStartedOn = context.getCurrentStep * Disease.dt
         logger.info("Lockdown started on " + lockdownStartedOn)
