@@ -1,12 +1,44 @@
 package multipleStrains
 
+import com.bharatsim.engine.ScheduleUnit
+
 import scala.collection.immutable.HashMap
-import com.bharatsim.engine.distributions.{LogNormal}
+import com.bharatsim.engine.distributions.LogNormal
 
 object Disease {
 
+  // Simulation parameters (not disease related) ******************* //
+
+  // Time step parameters:
+
+  final val inverse_dt = 2
+  final val dt: Double = 1f / inverse_dt // per 12 hour dt
+
+  var myTick: ScheduleUnit = new ScheduleUnit(1)
+  var myDay: ScheduleUnit = new ScheduleUnit(myTick * inverse_dt)
+
+  // Default values of arguments:
+
+  var inputPath: String = "dummy10k.csv"
+  var outputPath: String = "./"
+
+  var vaccinatePeople: Boolean = false
+  var closeSchools: Boolean = false
+  var unlockSchoolsAt: Int = 0
+
+  var prevaccinate: Boolean = false
+  var prevaccinateFamilies: Boolean = false
+
+  var lockdownEveryone: Boolean = false
+  var lockdownTriggerFraction: Float = 100 / 100
+
+  var secondStrainSeededOn: Double = 400*dt
+
+
   var beta: Double = 1.2
   var beta2: Double = 1.2*0.7/0.3
+
+  var reinfectionRisk: Double = 0.1
 
   final val initialExposedFraction1 = 0.01
   final val initialExposedFraction2 = 0.0
@@ -85,9 +117,6 @@ object Disease {
 //  final val mildSymptomaticDurationProbabilityDistribution = Exponential(8)
 //  final val severeSymptomaticDurationProbabilityDistribution = Exponential(18.1)
 //  final val hospitalisedDurationProbabilityDistribution = Exponential(18.1)
-
-  final val inverse_dt = 2
-  final val dt = 1.toDouble / inverse_dt
 
   var vaccinationRate = 0.05
 

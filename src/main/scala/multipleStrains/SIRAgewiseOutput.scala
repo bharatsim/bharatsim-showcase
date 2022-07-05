@@ -133,7 +133,7 @@ class SIRAgewiseOutput(context: Context) extends CSVSpecs { // TODO: Arrange the
     })
 
     val row = List(
-      context.getCurrentStep * Main.dt,
+      context.getCurrentStep * Disease.dt,
 
       countMap.getOrElse(Susceptible.toString + "0-18", 0),
       countMap.getOrElse(Exposed.toString + "0-18", 0),

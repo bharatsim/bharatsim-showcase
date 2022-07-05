@@ -31,7 +31,7 @@ object Disease {
   var prevaccinateFamilies: Boolean = false
 
   var lockdownEveryone: Boolean = false
-  var lockdownTriggerFraction: Float = 5
+  var lockdownTriggerFraction: Float = 5 / 100
 
   var rampUpBeta = false
 

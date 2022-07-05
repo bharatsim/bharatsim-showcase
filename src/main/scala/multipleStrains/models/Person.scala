@@ -9,7 +9,7 @@ import com.bharatsim.engine.models.{Agent, Network}
 import com.bharatsim.engine.utils.Probability.biasedCoinToss
 import multipleStrains.InfectionStatus._
 import multipleStrains.{Disease, Main}
-import multipleStrains.Main.{firstShotsAvailableThisTick, prevaccinateFamilies, reinfectionRisk, secondShotsAvailableThisTick, vaccinatePeople}
+import multipleStrains.Main.{firstShotsAvailableThisTick, secondShotsAvailableThisTick}
 
 case class Person(
     id: Long,
@@ -107,9 +107,9 @@ case class Person(
         var multiplier2 = 1.0
 
          if (!this.isSusceptible2) { // If they've been infected with strain 2
-           multiplier = reinfectionRisk // they can't be infected by strain 1
+           multiplier = Disease.reinfectionRisk // they can't be infected by strain 1
          } else if (!this.isSusceptible) { // If they've been infected with strain 1
-           multiplier2 = reinfectionRisk // they can't be infected by strain 2
+           multiplier2 = Disease.reinfectionRisk // they can't be infected by strain 2
          }
 
         val infectedFractionTuple = fetchInfected(decodedPlace, placeType, context)
@@ -339,7 +339,7 @@ case class Person(
 
   def vaccinatePerson(context: Context): Unit = {
 
-    val t: Double = context.getCurrentStep * Main.dt
+    val t: Double = context.getCurrentStep * Disease.dt
     if (shouldGetVaccine(t, roundToAgeRange(age))) {
 
       // Potential first shots
@@ -363,7 +363,7 @@ case class Person(
 
   def shouldGetVaccine(t: Double, age: Int): Boolean = {
 
-    if (prevaccinateFamilies && this.prevaccinate && this.vaccineShots == 0) {
+    if (Disease.prevaccinateFamilies && this.prevaccinate && this.vaccineShots == 0) {
       // That means this person should've been prevaccinated but wasn't, so vaccinate them now!
       return true
     }
@@ -414,7 +414,7 @@ case class Person(
   }
 
 
-  if (vaccinatePeople) {
+  if (Disease.vaccinatePeople) {
     addBehaviour(vaccinatePerson)
   }
 
