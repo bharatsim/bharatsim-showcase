@@ -1,11 +1,23 @@
 package schools
 
+import com.bharatsim.engine.ScheduleUnit
 import com.bharatsim.engine.distributions.LogNormal
 
 import scala.collection.immutable.HashMap
 
 
 object Disease {
+
+  // Simulation parameters (not disease related) ******************* //
+
+  // Time step parameters:
+
+  final val inverse_dt = 2
+  final val dt: Double = 1f / inverse_dt // per 12 hour dt
+
+  final val myTick: ScheduleUnit = new ScheduleUnit(1)
+  final val myDay: ScheduleUnit = new ScheduleUnit(myTick * inverse_dt)
+
 
   // Initial Population ***************************//
 

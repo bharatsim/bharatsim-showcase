@@ -39,7 +39,7 @@ case class InfectedSevereState(time: Double, toBeH: Boolean) extends State { // 
 
   addTransition(
     when = shouldMoveToH,
-    to = context => HospitalisedState(context.getCurrentStep + Main.inverse_dt * Disease.hospitalisedDurationProbabilityDistribution.sample(), Main.splittableRandom.nextDouble() < agentSigma)
+    to = context => HospitalisedState(context.getCurrentStep + Disease.inverse_dt * Disease.hospitalisedDurationProbabilityDistribution.sample(), Main.splittableRandom.nextDouble() < agentSigma)
   )
 
   addTransition(

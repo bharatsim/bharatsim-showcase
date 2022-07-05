@@ -40,7 +40,7 @@ class SIROutput(context: Context) extends CSVSpecs {
     })
 
       val row = List(
-      context.getCurrentStep * Main.dt,
+      context.getCurrentStep * Disease.dt,
       countMap.getOrElse(Susceptible.toString, 0),
       countMap.getOrElse(Exposed.toString, 0),
       countMap.getOrElse(Asymptomatic.toString, 0),

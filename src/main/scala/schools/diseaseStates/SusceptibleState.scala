@@ -21,7 +21,7 @@ case class SusceptibleState() extends State {
 
     if (agent.asInstanceOf[Person].isSusceptible) {
 
-      val agentBeta = rampedUpBeta(agent.asInstanceOf[Person].beta, t = context.getCurrentStep * Main.dt, agent = agent)
+      val agentBeta = rampedUpBeta(agent.asInstanceOf[Person].beta, t = context.getCurrentStep * Disease.dt, agent = agent)
       agentGamma = if (agent.asInstanceOf[Person].vaccineShots == 0) {
         agent.asInstanceOf[Person].gamma
       }
@@ -42,10 +42,10 @@ case class SusceptibleState() extends State {
         val infectedFraction = fetchInfectedFraction(decodedPlace, placeType, context)
 
         val r = Main.splittableRandom.nextDouble()
-        val agentGetsInfected = r < (agentBeta * infectedFraction + Disease.backgroundFOI(context.getCurrentStep * Main.dt)) * Main.dt
+        val agentGetsInfected = r < (agentBeta * infectedFraction + Disease.backgroundFOI(context.getCurrentStep * Disease.dt)) * Disease.dt
 
         // Are they infected by the background FOI?
-        val agentGetsInfectedByFOI = agentBeta * infectedFraction * Main.dt < r && r < (agentBeta * infectedFraction + Disease.backgroundFOI(context.getCurrentStep * Main.dt)) * Main.dt
+        val agentGetsInfectedByFOI = agentBeta * infectedFraction * Disease.dt < r && r < (agentBeta * infectedFraction + Disease.backgroundFOI(context.getCurrentStep * Disease.dt)) * Disease.dt
 
         if (infectedFraction > 0 && agentGetsInfected) {
           val peopleHere = decodedPlace.getConnections(decodedPlace.getRelation[Person]().get)
@@ -81,7 +81,7 @@ case class SusceptibleState() extends State {
 
   def vaccinatedParameter(context: Context, agent: StatefulAgent, parameter: Double, fractionalIncrease_firstShot: Double, fractionalIncrease_secondShot: Double, rampUpTime: Double = 14.0): Double = {
 
-    val t = context.getCurrentStep * Main.dt
+    val t = context.getCurrentStep * Disease.dt
 
     if (agent.asInstanceOf[Person].vaccineShots == 1) {
       val vday = agent.asInstanceOf[Person].receivedFirstShotOn
@@ -145,7 +145,7 @@ case class SusceptibleState() extends State {
 
   addTransition(
     when = exitSusceptible,
-    to = context => ExposedState(context.getCurrentStep + Main.inverse_dt * Disease.exposedDurationProbabilityDistribution.sample(), Main.splittableRandom.nextDouble() < agentGamma)
+    to = context => ExposedState(context.getCurrentStep + Disease.inverse_dt * Disease.exposedDurationProbabilityDistribution.sample(), Main.splittableRandom.nextDouble() < agentGamma)
   )
 
 

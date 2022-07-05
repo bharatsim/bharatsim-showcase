@@ -72,7 +72,7 @@ case class Person(agentId: Long,
 
   def vaccinatePerson(context: Context): Unit = {
 
-    val t: Double = context.getCurrentStep * Main.dt
+    val t: Double = context.getCurrentStep * Disease.dt
     if (shouldGetVaccine(t, roundToAgeRange(age))) {
 
       // Potential first shots
