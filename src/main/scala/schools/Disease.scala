@@ -39,7 +39,7 @@ object Disease {
 
   // Initial Population ***************************//
 
-  final val asymptomaticFraction = 1f / 100
+  final val asymptomaticFraction = 0.1f / 100
   final val ageStratifiedBetaMultiplier = HashMap(
     9 -> 1.0,
     19 -> 1.0,

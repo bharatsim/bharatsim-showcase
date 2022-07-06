@@ -8,7 +8,6 @@ import com.bharatsim.engine.graph.patternMatcher.MatchCondition._
 import com.bharatsim.engine.models.{Network, StatefulAgent}
 import schools.{Disease, Main}
 import schools.InfectionStatus.{Asymptomatic, Hospitalised, InfectedMild, InfectedSevere, Presymptomatic}
-import schools.Main.rampUpBeta
 import schools.models.Person
 
 import scala.collection.mutable.ListBuffer
@@ -113,7 +112,7 @@ case class SusceptibleState() extends State {
     }
     else beta
 
-    if (rampUpBeta) {
+    if (Disease.rampUpBeta) {
       List((1 - reduction) * agentBeta + reduction * t / rampUpTime, agentBeta).min
     }
     else {

@@ -27,7 +27,7 @@ class GISOutputSpec(context: Context) extends CSVSpecs {
 
     val people = context.graphProvider.fetchNodes(
       label,
-      ("infectionState" equ InfectedMild) or ("infectionState" equ InfectedSevere)
+      ("infectionState" equ Asymptomatic) or ("infectionState" equ Presymptomatic) or ("infectionState" equ InfectedMild) or ("infectionState" equ InfectedSevere) or ("infectionState" equ Hospitalised)
     )
 
     people.foreach((p) => {

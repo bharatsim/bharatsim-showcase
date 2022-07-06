@@ -96,7 +96,9 @@ object Main extends LazyLogging {
         vaccination
       }
 
-      closeSchoolsUntil
+      if(Disease.closeSchools) {
+        closeSchoolsUntil
+      }
 
       if (Disease.lockdownEveryone) {
         lockdown
@@ -138,11 +140,14 @@ object Main extends LazyLogging {
       SimulationListenerRegistry.register(
         new CsvOutputGenerator(Disease.outputPath + "total_output" + label + "_" + rn + ".csv", new SIROutput(context))
       )
+//      SimulationListenerRegistry.register(
+//        new CsvOutputGenerator(Disease.outputPath + "agewise_output" + label + "_" + rn + ".csv", new SIRAgewiseOutput(context))
+//      )
+//      SimulationListenerRegistry.register(
+//        new CsvOutputGenerator(Disease.outputPath + "infectioninfo_output" + label + "_" + rn + ".csv", new InfectionInfoOutput(context))
+//      )
       SimulationListenerRegistry.register(
-        new CsvOutputGenerator(Disease.outputPath + "agewise_output" + label + "_" + rn + ".csv", new SIRAgewiseOutput(context))
-      )
-      SimulationListenerRegistry.register(
-        new CsvOutputGenerator(Disease.outputPath + "infectioninfo_output" + label + "_" + rn + ".csv", new InfectionInfoOutput(context))
+        new CsvOutputGenerator(Disease.outputPath + "GIS_output" + label + "_" + rn + ".csv", new GISOutputSpec(context))
       )
     }
 
@@ -355,9 +360,9 @@ object Main extends LazyLogging {
       result
     }
     val deactivationCondition = (context: Context) => {
-      val currentlyUnvaccinated = context.graphProvider.fetchCount("Person", ("vaccinationStatus" equ false)).toDouble
       val result = context.getCurrentStep >= Disease.unlockSchoolsAt * Disease.inverse_dt
       if (result) {
+        val currentlyUnvaccinated = context.graphProvider.fetchCount("Person", ("vaccinationStatus" equ false)).toDouble
         logger.info("Schools opened on day " + schoolsOpenedOn + ", unvaccinated fraction " + currentlyUnvaccinated / ingestedPopulation)
       }
       result
@@ -635,7 +640,7 @@ object Main extends LazyLogging {
   private def lockdown(implicit context: Context): Unit = {
 
     var ActivatedAt = 0
-    val LockdownDurationDays = 1000 // Lockdown goes on forever
+    val LockdownDurationDays = 30 // Lockdown goes on forever
     val interventionName = "lockdown"
     val activationCondition = (context: Context) => {
       val result = getInfectedCount(context) >= Disease.lockdownTriggerFraction*ingestedPopulation // If there more than the trigger fraction lockdown.
@@ -647,7 +652,7 @@ object Main extends LazyLogging {
     }
     val firstTimeExecution = (context: Context) => ActivatedAt = context.getCurrentStep
     val DeactivationCondition = (context: Context) => {
-      context.getCurrentStep >= ActivatedAt + (LockdownDurationDays * Disease.inverse_dt) // FOREVER lockdown is the default value
+      context.getCurrentStep >= ActivatedAt + (LockdownDurationDays * Disease.inverse_dt) // 30 day lockdown is the default value
     }
     val intervention = SingleInvocationIntervention(interventionName, activationCondition, DeactivationCondition, firstTimeExecution)
 
