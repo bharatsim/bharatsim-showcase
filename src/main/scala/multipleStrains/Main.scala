@@ -29,9 +29,7 @@ object Main extends LazyLogging {
   var firstShotsAvailableThisTick: Int = 0
   var secondShotsAvailableThisTick: Int = 0
 
-
   var ageWiseVaccinesAdministered: Array[Int] = Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-
 
   private var vaccinationStarted: Double = 0
   private var ingestedPopulation = 0
@@ -114,7 +112,7 @@ object Main extends LazyLogging {
       registerAction(
         StopSimulation,
         (c: Context) => {
-          c.getCurrentStep >= (200 * Disease.inverse_dt)
+          c.getCurrentStep >= (300 * inverse_dt)
         }
       )
 
@@ -136,12 +134,12 @@ object Main extends LazyLogging {
       SimulationListenerRegistry.register(
         new CsvOutputGenerator(Disease.outputPath+"total_output" + label + "_" + rn + ".csv", new SIROutput(context))
       )
-      SimulationListenerRegistry.register(
-        new CsvOutputGenerator(Disease.outputPath+"/agewise_output" + label + "_" + rn + ".csv", new SIRAgewiseOutput(context))
-      )
-      SimulationListenerRegistry.register(
-        new CsvOutputGenerator(Disease.outputPath+"/infectioninfo_output" + label + "_" + rn + ".csv", new InfectionInfoOutput(context))
-      )
+//      SimulationListenerRegistry.register(
+//        new CsvOutputGenerator(outputPath+"/agewise_output" + label + "_" + rn + ".csv", new SIRAgewiseOutput(context))
+//      )
+//      SimulationListenerRegistry.register(
+//        new CsvOutputGenerator(outputPath+"/infectioninfo_output" + label + "_" + rn + ".csv", new InfectionInfoOutput(context))
+//      )
     }
 
     simulation.onCompleteSimulation { implicit context =>

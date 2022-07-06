@@ -41,7 +41,7 @@ object Disease {
   var reinfectionRisk: Double = 0.1
 
   final val initialExposedFraction1 = 0.01
-  final val initialExposedFraction2 = 0.0
+  final val initialExposedFraction2 = 0.00
 
   final val seededExposedFraction1 = 0.00
   final val seededExposedFraction2 = 0.01
