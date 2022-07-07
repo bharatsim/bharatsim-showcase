@@ -166,11 +166,11 @@ object Main extends LazyLogging {
   def mapper(row: Map[String, String]): GraphData = {
     val agentID = row("Agent_ID").toLong
     val age = row("Age").toInt
-    val infectionState = setInitialPopulation()
     val isEssentialWorker = row("essential_worker").toInt == 1
     val violateLockdown = row("Adherence_to_Intervention").toFloat < 0.5
 
     val villageTown = row("AdminUnitName")
+    val infectionState = setInitialPopulation(villageTown)
     val lat = row("H_Lat")
     val long = row("H_Lon")
     val homeId = row("HHID").toLong
@@ -279,23 +279,33 @@ object Main extends LazyLogging {
     data
   }
 
-
-  private def setInitialPopulation(): String = {
-    val x = splittableRandom.nextDouble()
-    if (x <= Disease.initialExposedFraction) {
+  private def setInitialPopulation(adminUnit: String): String = {
+    if (adminUnit == Disease.initialInfectedWard) {
       "Exposed"
-    }
-    else if (Disease.initialExposedFraction < x && x <= (Disease.initialRecoveredFraction + Disease.initialExposedFraction)) {
-      "Recovered"
     }
     else {
       "Susceptible"
     }
   }
 
+
+//  private def setInitialPopulation(): String = {
+//    val x = splittableRandom.nextDouble()
+//    if (x <= Disease.initialExposedFraction) {
+//      "Exposed"
+//    }
+//    else if (Disease.initialExposedFraction < x && x <= (Disease.initialRecoveredFraction + Disease.initialExposedFraction)) {
+//      "Recovered"
+//    }
+//    else {
+//      "Susceptible"
+//    }
+//  }
+
   private def setCitizenInitialState(citizen: Person, initialStatus: String): Unit = {
     initialStatus match {
       case "Susceptible" => citizen.setInitialState(SusceptibleState())
+      case "Exposed" => citizen.setInitialState(ExposedState(Disease.inverse_dt * Disease.exposedDurationProbabilityDistribution.sample(), splittableRandom.nextDouble() < citizen.gamma))
       case "Asymptomatic" => citizen.setInitialState(AsymptomaticState(Disease.inverse_dt * Disease.asymptomaticDurationProbabilityDistribution.sample()))
       case "Presymptomatic" => citizen.setInitialState(PresymptomaticState(Disease.inverse_dt * Disease.presymptomaticDurationProbabilityDistribution.sample(), splittableRandom.nextDouble() < citizen.delta))
       case "InfectedMild" => citizen.setInitialState(InfectedMildState(Disease.inverse_dt * Disease.mildSymptomaticDurationProbabilityDistribution.sample()))

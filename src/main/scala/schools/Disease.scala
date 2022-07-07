@@ -40,6 +40,8 @@ object Disease {
   // Initial Population ***************************//
 
   final val initialExposedFraction = 0.1f / 100
+  final val initialInfectedWard = "Lohiya Nagar-Kasewadi"
+
   final val ageStratifiedBetaMultiplier = HashMap(
     9 -> 1.0,
     19 -> 1.0,
