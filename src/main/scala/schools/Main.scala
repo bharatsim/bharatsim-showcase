@@ -282,10 +282,10 @@ object Main extends LazyLogging {
 
   private def setInitialPopulation(): String = {
     val x = splittableRandom.nextDouble()
-    if (x <= Disease.asymptomaticFraction) {
-      "Asymptomatic"
+    if (x <= Disease.initialExposedFraction) {
+      "Exposed"
     }
-    else if (Disease.asymptomaticFraction < x && x <= (Disease.initialRecoveredFraction + Disease.asymptomaticFraction)) {
+    else if (Disease.initialExposedFraction < x && x <= (Disease.initialRecoveredFraction + Disease.initialExposedFraction)) {
       "Recovered"
     }
     else {
