@@ -22,27 +22,32 @@ class GISOutputSpec(context: Context) extends CSVSpecs {
     )
   }
   override def getRows(): List[List[Any]] = {
-    val label = "Person"
-    val countByLatLong = new mutable.HashMap[(Double, Double), Int]()
+    if (context.getCurrentStep % (5 * Disease.inverse_dt) == 0) {  // get data only every 5 days
+      val label = "Person"
+      val countByLatLong = new mutable.HashMap[(Double, Double), Int]()
 
-    val people = context.graphProvider.fetchNodes(
-      label,
-      ("infectionState" equ Asymptomatic) or ("infectionState" equ Presymptomatic) or ("infectionState" equ InfectedMild) or ("infectionState" equ InfectedSevere) or ("infectionState" equ Hospitalised)
-    )
+      val people = context.graphProvider.fetchNodes(
+        label,
+        ("infectionState" equ Asymptomatic) or ("infectionState" equ Presymptomatic) or ("infectionState" equ InfectedMild) or ("infectionState" equ InfectedSevere) or ("infectionState" equ Hospitalised)
+      )
 
-    people.foreach((p) => {
-      val person = p.as[Person]
-      val latLong = roundLatLong(person.lat, person.long)
-      val infectedCount = countByLatLong.getOrElseUpdate(latLong, 0)
-      countByLatLong.put(latLong, infectedCount + 1)
-    })
+      people.foreach((p) => {
+        val person = p.as[Person]
+        val latLong = roundLatLong(person.lat, person.long)
+        val infectedCount = countByLatLong.getOrElseUpdate(latLong, 0)
+        countByLatLong.put(latLong, infectedCount + 1)
+      })
 
-    val rows = ListBuffer.empty[List[String]]
-    countByLatLong.toList.foreach((kv) => {
-      val latLong = kv._1
-      val count = kv._2
-      rows.addOne(List(context.getCurrentStep.toString, latLong._1.toString, latLong._2.toString, count.toString))
-    })
-    return rows.toList
+      val rows = ListBuffer.empty[List[String]]
+      countByLatLong.toList.foreach((kv) => {
+        val latLong = kv._1
+        val count = kv._2
+        rows.addOne(List(context.getCurrentStep.toString, latLong._1.toString, latLong._2.toString, count.toString))
+      })
+      return rows.toList
+    }
+    else {
+      List.empty
+    }
   }
 }

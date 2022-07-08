@@ -23,14 +23,12 @@ object Disease {
   var inputPath: String = "Pune_20k_school_population.csv"
   var outputPath: String = "./"
 
-  var vaccinatePeople: Boolean = false
-  var closeSchools: Boolean = false
   var unlockSchoolsAt: Int = 0
 
-  var prevaccinate: Boolean = false
   var prevaccinateFamilies: Boolean = false
 
-  var lockdownEveryone: Boolean = false
+  var vaccinationTriggerFraction: Float = 5/100
+
   var lockdownTriggerFraction: Float = 5 / 100
 
   var rampUpBeta = false
@@ -40,7 +38,10 @@ object Disease {
   // Initial Population ***************************//
 
   final val initialExposedFraction = 0.1f / 100
+
+  final val localizedInfections: Boolean = true
   final val initialInfectedWard = "Lohiya Nagar-Kasewadi"
+//  final val initialInfectedWard = "Bavdhan-Kothrud Depo"  // for 20k population
 
   final val ageStratifiedBetaMultiplier = HashMap(
     9 -> 1.0,
@@ -152,8 +153,8 @@ object Disease {
 
   val nClassrooms = 100
   var initialRecoveredFraction: Float = 30f / 100
-  var vaccinatedOneShotFraction: Float = 20f / 100
-  var vaccinatedTwoShotFraction: Float = 10f / 100
+  var prevaccinatedOneShotFraction: Float = 20f / 100
+  var prevaccinatedTwoShotFraction: Float = 10f / 100
 
   var vaccinationRate: Double = 0.0d / 100d
 

@@ -12,4 +12,4 @@ assemblyMergeStrategy in assembly := {
 
 mainClass in (Compile, run) := Some("multipleStrains.Main")
 
-mainClass in assembly := Some("multipleStrains.Main")
+mainClass in assembly := Some("schools.Main")
