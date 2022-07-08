@@ -153,7 +153,7 @@ case class Person(agentId: Long,
   }
 
 
-  if (Disease.vaccinationRate != 0 && Disease.vaccinationTriggerFraction <= 100) {
+  if (Disease.vaccinationRate != 0 && Disease.vaccinationTriggerFraction <= 1) {
     addBehaviour(vaccinatePerson)
   }
 

@@ -93,7 +93,7 @@ object Main extends LazyLogging {
         prevaccination(shot = 2)
       }
 
-      if (Disease.vaccinationRate != 0 && Disease.vaccinationTriggerFraction <= 100) {
+      if (Disease.vaccinationRate != 0 && Disease.vaccinationTriggerFraction <= 1) {
         vaccination
       }
 
@@ -101,7 +101,7 @@ object Main extends LazyLogging {
         closeSchoolsUntil
       }
 
-      if (Disease.lockdownTriggerFraction <= 100) {
+      if (Disease.lockdownTriggerFraction <= 1) {
         lockdown
       }
 
@@ -130,7 +130,7 @@ object Main extends LazyLogging {
 
       val rn = splittableRandom.nextDouble()
       val closeschoolslabel = if (Disease.unlockSchoolsAt > 0) 1 else 0
-      val lockdownlabel = if (Disease.lockdownTriggerFraction <= 100) 1 else 0
+      val lockdownlabel = if (Disease.lockdownTriggerFraction <= 1) 1 else 0
 
       var label = "_IR_" + (Disease.initialRecoveredFraction * 100).toInt + "_IV_" + (Disease.prevaccinatedOneShotFraction * 100).toInt + "_" + (Disease.prevaccinatedTwoShotFraction * 100).toInt
 
