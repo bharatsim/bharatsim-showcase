@@ -13,7 +13,7 @@ class SIROutput(context: Context) extends CSVSpecs {
 
   override def getHeaders: List[String] =
     List(
-      "#Day",
+      "Day",
       "Susceptible",
       "Exposed",
       "Asymptomatic",

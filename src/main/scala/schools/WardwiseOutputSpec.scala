@@ -13,17 +13,16 @@ class WardwiseOutputSpec(context: Context) extends CSVSpecs {
 
   override def getRows(): List[List[Any]] = {
     if (context.getCurrentStep % (5 * Disease.inverse_dt) == 0) {  // get data only every 5 days
+      val infectedStates = List(Exposed.toString, Asymptomatic.toString, Presymptomatic.toString, InfectedMild.toString, InfectedSevere.toString, Hospitalised.toString)
       val label = "Person"
       val countByWard = new mutable.HashMap[String, (Int, Int)]()  // values are (infectedCount, recoveredCount)
 
-      val people = context.graphProvider.fetchNodes(
-        label
-      )
+      val people = context.graphProvider.fetchNodes(label)
 
       people.foreach(p => {
         val ward = p.getParams.apply("villageTown").toString
         val infectionState = p.getParams.apply("infectionState").toString
-        if (List(Asymptomatic.toString, Presymptomatic.toString, InfectedMild.toString, InfectedSevere.toString, Hospitalised.toString).contains(infectionState)) {
+        if (infectedStates.contains(infectionState)) {
           val currentCounts = countByWard.getOrElseUpdate(ward, (0, 0))
           countByWard.put(ward, (currentCounts._1 + 1, currentCounts._2))
         }

@@ -137,6 +137,7 @@ object Main extends LazyLogging {
       label += "_VR_" + (Disease.vaccinationRate * 100)
       label += "_closeSchools_" + closeschoolslabel + "_unlockSchoolsAt_" + Disease.unlockSchoolsAt
       label += "_lockdown_" + lockdownlabel
+      // todo add lockdown label on when lockdown started (if possible)
 
       SimulationListenerRegistry.register(
         new CsvOutputGenerator(Disease.outputPath + "total_output" + label + "_" + rn + ".csv", new SIROutput(context))
@@ -147,9 +148,9 @@ object Main extends LazyLogging {
 //      SimulationListenerRegistry.register(
 //        new CsvOutputGenerator(Disease.outputPath + "infectioninfo_output" + label + "_" + rn + ".csv", new InfectionInfoOutput(context))
 //      )
-//      SimulationListenerRegistry.register(
-//        new CsvOutputGenerator(Disease.outputPath + "GIS_output" + label + "_" + rn + ".csv", new GISOutputSpec(context))
-//      )
+      SimulationListenerRegistry.register(
+        new CsvOutputGenerator(Disease.outputPath + "GIS_output" + label + "_" + rn + ".csv", new GISOutputSpec(context))
+      )
       SimulationListenerRegistry.register(
         new CsvOutputGenerator(Disease.outputPath + "Wardwise_output" + label + "_" + rn + ".csv", new WardwiseOutputSpec(context))
       )
@@ -174,7 +175,7 @@ object Main extends LazyLogging {
     val violateLockdown = row("Adherence_to_Intervention").toFloat < 0.5
 
     val villageTown = row("AdminUnitName")
-    val infectionState = if (Disease.localizedInfections) setInitialPopulationLocalized(villageTown) else setInitialPopulation()  // toDo: make a single function, try to optimize
+    val infectionState = if (Disease.localizedInfections) setInitialPopulation(villageTown) else setInitialPopulation()
     val lat = row("H_Lat")
     val long = row("H_Lon")
     val homeId = row("HHID").toLong
@@ -184,7 +185,7 @@ object Main extends LazyLogging {
     val houses = Relation[Home, Person](homeId, "HOUSES", agentID)
 
     val schoolID = row("school_id").toLong
-    val officeID = row("WorkPlaceID").toLong / 100 // ToDo: Fix the synthetic population so that we don't need to do this
+    val officeID = row("WorkPlaceID").toLong // /100  ToDo: Fix the synthetic population so that we don't need to do this
     // ToDo: Perhaps add an FOI?
 
     val isEmployee: Boolean = officeID > 0
@@ -283,7 +284,7 @@ object Main extends LazyLogging {
     data
   }
 
-  private def setInitialPopulationLocalized(adminUnit: String): String = {
+  private def setInitialPopulation(adminUnit: String): String = {
     if ((adminUnit == Disease.initialInfectedWard) && (initialExposedNumber > 0)) {
       initialExposedNumber -= 1
       "Exposed"
@@ -298,7 +299,6 @@ object Main extends LazyLogging {
       }
     }
   }
-
 
   private def setInitialPopulation(): String = {
     val x = splittableRandom.nextDouble()
