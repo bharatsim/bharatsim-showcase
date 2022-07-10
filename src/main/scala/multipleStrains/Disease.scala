@@ -105,6 +105,7 @@ object Disease {
   final val presymptomaticDurationProbabilityDistribution = LogNormal(1.1, 0.9)
   final val asymptomaticDurationProbabilityDistribution = LogNormal(8, 2)
   final val mildSymptomaticDurationProbabilityDistribution = LogNormal(8, 2)
+  final val mildToSevereSymptomaticDurationProbabilityDistribution = LogNormal(6.6, 4.9)
   final val severeSymptomaticDurationProbabilityDistribution = LogNormal(1.5, 2.0)
   final val hospitalisedDurationProbabilityDistribution = LogNormal(18.1, 6.3)
 

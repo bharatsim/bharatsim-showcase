@@ -35,7 +35,7 @@ case class PresymptomaticState(time: Double, toBeMI: Boolean) extends State {
 
   addTransition(
     when = shouldMoveToSI,
-    to = context => InfectedSevereState(context.getCurrentStep + Disease.inverse_dt * Disease.severeSymptomaticDurationProbabilityDistribution.sample(), toBeH = true) // toBeH is always true (all SI go to H in IndSciSim)
+    to = context => InfectedSevereState(context.getCurrentStep + Disease.inverse_dt * (Disease.severeSymptomaticDurationProbabilityDistribution.sample() + Disease.mildToSevereSymptomaticDurationProbabilityDistribution.sample()), toBeH = true) // toBeH is always true (all SI go to H in IndSciSim)
   )
 
 }

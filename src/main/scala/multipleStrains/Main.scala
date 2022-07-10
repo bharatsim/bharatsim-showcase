@@ -192,7 +192,7 @@ object Main extends LazyLogging {
 
     // Alternatively, one could prevaccinate family members and teachers
     //    val prevaccinate = (row("fam_mem").toInt == 1 || isTeacher) && prevaccinateFamilies
-
+    // TODO: Make this more general, for any state
     val exitTime1=
       if (infectionState1 == "Exposed")
         Disease.exposedDurationProbabilityDistribution.sample() * Disease.inverse_dt
@@ -687,7 +687,7 @@ object Main extends LazyLogging {
       (lockdownSchedule,
         (agent: Agent, context: Context) => {
           val isEssentialWorker = agent.asInstanceOf[Person].isEssentialWorker
-          val violateLockdown = false // Currently, no one violates the lockdown // agent.asInstanceOf[Person].violateLockdown
+          val violateLockdown = false // Currently, no one violates the lockdown // agent.asInstanceOf[Person].violateLockdown //TODO: Change this in Pune runs
           val isLockdown = context.activeInterventionNames.contains(interventionName)
           isLockdown && !(isEssentialWorker || violateLockdown)
         },

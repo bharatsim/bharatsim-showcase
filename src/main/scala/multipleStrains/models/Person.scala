@@ -205,7 +205,7 @@ case class Person(
         updateParam("infectionState", InfectedSevere)
         updateParam(
           "exitTime",
-          context.getCurrentStep + Disease.severeSymptomaticDurationProbabilityDistribution.sample() * Disease.inverse_dt
+          context.getCurrentStep + (Disease.severeSymptomaticDurationProbabilityDistribution.sample() + Disease.mildToSevereSymptomaticDurationProbabilityDistribution.sample()) * Disease.inverse_dt
         )
       }
       else {
@@ -223,7 +223,7 @@ case class Person(
         updateParam("infectionState2", InfectedSevere2)
         updateParam(
           "exitTime2",
-          context.getCurrentStep + Disease.severeSymptomaticDurationProbabilityDistribution.sample() * Disease.inverse_dt
+          context.getCurrentStep + (Disease.severeSymptomaticDurationProbabilityDistribution.sample() + Disease.mildToSevereSymptomaticDurationProbabilityDistribution.sample()) * Disease.inverse_dt
         )
       }
       else {
