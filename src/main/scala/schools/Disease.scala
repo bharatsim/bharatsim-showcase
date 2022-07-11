@@ -27,9 +27,9 @@ object Disease {
 
   var prevaccinateFamilies: Boolean = false
 
-  var vaccinationTriggerFraction: Float = 5/100
+  var vaccinationTriggerFraction: Float = 1f / 100 //TODO: Check default values
 
-  var lockdownTriggerFraction: Float = 5 / 100
+  var lockdownTriggerFraction: Float = 5f / 100 //TODO: Check default values
 
   var rampUpBeta = false
 

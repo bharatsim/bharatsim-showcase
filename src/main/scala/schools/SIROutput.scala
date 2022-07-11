@@ -24,7 +24,9 @@ class SIROutput(context: Context) extends CSVSpecs {
       "Hospitalised",
       "Dead",
       "VaccinesAdministered",
-      "BackgroundSeropositivity"
+      "BackgroundSeropositivity",
+      "AllInfected",
+      "AllRemoved"
     )
 
   override def getRows(): List[List[Any]] = {
@@ -52,7 +54,9 @@ class SIROutput(context: Context) extends CSVSpecs {
         countMap.getOrElse(Hospitalised.toString, 0),
         countMap.getOrElse(Dead.toString, 0),
         Main.vaccinesAdministered,
-        graphProvider.fetchCount(label, EmptyPattern()) - graphProvider.fetchCount(label, (("vaccinationStatus" equ false) and ("infectionState" equ Susceptible)))
+        graphProvider.fetchCount(label, EmptyPattern()) - graphProvider.fetchCount(label, (("vaccinationStatus" equ false) and ("infectionState" equ Susceptible))),
+        countMap.getOrElse(Exposed.toString, 0) + countMap.getOrElse(Asymptomatic.toString, 0) + countMap.getOrElse(Presymptomatic.toString, 0) + countMap.getOrElse(InfectedMild.toString, 0) + countMap.getOrElse(InfectedSevere.toString, 0) + countMap.getOrElse(Hospitalised.toString, 0) ,
+        countMap.getOrElse(Recovered.toString, 0) + countMap.getOrElse(Dead.toString, 0)
       )
       List(row)
     }

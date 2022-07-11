@@ -97,7 +97,7 @@ object Main extends LazyLogging {
         vaccination
       }
 
-      if(Disease.unlockSchoolsAt != 0) {
+      if(Disease.unlockSchoolsAt > 0) {
         closeSchoolsUntil
       }
 
@@ -110,7 +110,7 @@ object Main extends LazyLogging {
       registerAction(
         StopSimulation,
         (c: Context) => {
-          c.getCurrentStep >= (100 * Disease.inverse_dt)
+          c.getCurrentStep >= (200 * Disease.inverse_dt)
         }
       )
 
@@ -185,7 +185,7 @@ object Main extends LazyLogging {
     val houses = Relation[Home, Person](homeId, "HOUSES", agentID)
 
     val schoolID = row("school_id").toLong
-    val officeID = row("WorkPlaceID").toLong // /100  ToDo: Fix the synthetic population so that we don't need to do this
+    val officeID = row("WorkPlaceID").toLong // /100 // ToDo: Fix the synthetic population so that we don't need to do this
     // ToDo: Perhaps add an FOI?
 
     val isEmployee: Boolean = officeID > 0
@@ -515,7 +515,7 @@ object Main extends LazyLogging {
 //      val conditionMet = context.getCurrentStep >= 0
     val conditionMet = getInfectedCount(context) >= Disease.vaccinationTriggerFraction*ingestedPopulation
       if (conditionMet) {
-        vaccinationStarted = context.getCurrentStep
+        vaccinationStarted = context.getCurrentStep * Disease.dt
         logger.info("Vaccination started on day "+vaccinationStarted*Disease.dt)
       }
       conditionMet
@@ -661,7 +661,7 @@ object Main extends LazyLogging {
   private def lockdown(implicit context: Context): Unit = {
 
     var ActivatedAt = 0
-    val LockdownDurationDays = 30 // Lockdown goes on forever
+    val LockdownDurationDays = 15 // Lockdown goes on for 15 days
     val interventionName = "lockdown"
     val activationCondition = (context: Context) => {
       val result = getInfectedCount(context) >= Disease.lockdownTriggerFraction*ingestedPopulation // If there more than the trigger fraction lockdown.
@@ -673,7 +673,7 @@ object Main extends LazyLogging {
     }
     val firstTimeExecution = (context: Context) => ActivatedAt = context.getCurrentStep
     val DeactivationCondition = (context: Context) => {
-      context.getCurrentStep >= ActivatedAt + (LockdownDurationDays * Disease.inverse_dt) // 30 day lockdown is the default value
+      context.getCurrentStep >= ActivatedAt + (LockdownDurationDays * Disease.inverse_dt) // 15 day lockdown is the default value
     }
     val intervention = SingleInvocationIntervention(interventionName, activationCondition, DeactivationCondition, firstTimeExecution)
 

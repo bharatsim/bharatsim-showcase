@@ -10,6 +10,6 @@ assemblyMergeStrategy in assembly := {
   case x                             => MergeStrategy.first
 }
 
-mainClass in (Compile, run) := Some("multipleStrains.Main")
+mainClass in (Compile, run) := Some("schools.Main")
 
 mainClass in assembly := Some("schools.Main")
