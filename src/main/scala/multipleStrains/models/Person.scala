@@ -414,7 +414,7 @@ case class Person(
   }
 
 
-  if (Disease.vaccinatePeople) {
+  if (Disease.vaccinationRate > 0 && Disease.vaccinationTriggerFraction <= 1) {
     addBehaviour(vaccinatePerson)
   }
 

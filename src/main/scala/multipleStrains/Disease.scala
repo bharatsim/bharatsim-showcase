@@ -22,14 +22,12 @@ object Disease {
   var inputPath: String = "dummy10k.csv"
   var outputPath: String = "./"
 
-  var vaccinatePeople: Boolean = false
-  var closeSchools: Boolean = false
   var unlockSchoolsAt: Int = 0
 
-  var prevaccinate: Boolean = false
   var prevaccinateFamilies: Boolean = false
 
-  var lockdownEveryone: Boolean = false
+  var vaccinationTriggerFraction: Float = 100 / 100
+
   var lockdownTriggerFraction: Float = 100 / 100
 
   var secondStrainSeededOn: Double = 400*dt
@@ -137,8 +135,8 @@ object Disease {
   final val fractionalTransmissionReduction = 0.4
   val nClassrooms = 100
 
-  var vaccinatedOneShotFraction: Float = 20f / 100
-  var vaccinatedTwoShotFraction: Float = 10f / 100
+  var prevaccinatedOneShotFraction: Float = 20f / 100
+  var prevaccinatedTwoShotFraction: Float = 10f / 100
 
 
 
