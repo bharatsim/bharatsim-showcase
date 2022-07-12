@@ -40,39 +40,41 @@ object Main extends LazyLogging {
   private var schoolsOpenedOn: Double = 0
   private var lockdownStartedOn: Double = 0
 
+  def parseArgs(args: Array[String]): Unit = {
+
+    for (arg <- args) {
+      val a = arg.split("=")
+
+      if(a.length!=2){
+        throw new Exception(s"Unsupported syntax for argument: \""+arg+"\". Flag syntax is `name=value`, without spaces.")
+      }
+      else{
+        val key = a(0).toUpperCase
+        val value = a(1)
+
+        key match{
+          case "INPUT"  => { Disease.inputPath = value; logger.info("Set input path to "+Disease.inputPath) }
+          case "OUTPUT" => { Disease.outputPath = value; logger.info("Set output path to "+Disease.outputPath)  }
+          case "IR"     => { Disease.initialRecoveredFraction = value.toFloat / 100f; logger.info("Set initial recovered fraction to "+Disease.initialRecoveredFraction) }
+          case "IV1"    => { Disease.prevaccinatedOneShotFraction = value.toFloat / 100; logger.info("Set initial one-shot vaccination fraction to "+Disease.prevaccinatedOneShotFraction) }
+          case "IV2"    => { Disease.prevaccinatedTwoShotFraction = value.toFloat / 100; logger.info("Set initial two-shot vaccination fraction to "+Disease.prevaccinatedTwoShotFraction) }
+          case "DVR"    => { Disease.vaccinationRate = value.toDouble / 100; logger.info("Set daily vaccination rate to "+Disease.vaccinationRate) }
+          case "VT"     => { Disease.vaccinationTriggerFraction = value.toFloat / 100; logger.info("Set vaccination trigger fraction to "+Disease.vaccinationTriggerFraction) }
+          case "USA"    => { Disease.unlockSchoolsAt = value.toInt; logger.info("Set day to unlock schools at to "+Disease.unlockSchoolsAt) }
+          case "LT"     => { Disease.lockdownTriggerFraction = value.toFloat / 100; logger.info("Set lockdown trigger fraction to "+Disease.lockdownTriggerFraction) }
+          case _        => { throw new Exception(s"Unsupported flag: \""+key+"\". Available flags are \"INPUT\", \"OUTPUT\", \"IR\", \"IV1\", \"IV2\", \"DVR\", \"VT\", \"USA\", \"LT\".") }
+        }
+      }
+    }
+  }
 
   def main(args: Array[String]): Unit = {
     var beforeCount = 0
     val simulation = Simulation()
 
     logger.info("Bare Beta = " + Disease.lambda_S)
-    args.foreach(print)
 
-    if (args.length != 0) {
-      logger.info("Accepting arguments")
-
-      // Input and output csv file paths
-      Disease.inputPath = args(0)
-      Disease.outputPath = args(1)
-
-      // Initial Recovered Parameters
-      Disease.initialRecoveredFraction = args(2).toFloat / 100
-
-      // Initial Vaccinated Parameters
-      Disease.prevaccinatedOneShotFraction = args(3).toFloat / 100
-      Disease.prevaccinatedTwoShotFraction = args(4).toFloat / 100
-
-      // Rolling Vaccination Parameters
-      Disease.vaccinationRate = args(5).toDouble / 100d
-      Disease.vaccinationTriggerFraction = args(6).toFloat / 100
-
-      // Close Schools
-      Disease.unlockSchoolsAt = args(7).toInt
-
-      // Lockdown
-      Disease.lockdownTriggerFraction = args(8).toFloat / 100 // also for vaccines
-
-    }
+    parseArgs(args)
 
     logger.info("Phase1 " + Disease.phase1 + " ends on day " + Disease.phase1_endDate)
     logger.info("Phase2 " + Disease.phase2 + " ends on day " + Disease.phase2_endDate)
