@@ -177,7 +177,6 @@ object Main extends LazyLogging {
     val violateLockdown = row("Adherence_to_Intervention").toFloat < 0.5
 
     val villageTown = row("AdminUnitName")
-    val infectionState = if (Disease.localizedInfections) setInitialPopulation(villageTown) else setInitialPopulation()
     val lat = row("H_Lat")
     val long = row("H_Lon")
     val homeId = row("HHID").toLong
@@ -185,6 +184,8 @@ object Main extends LazyLogging {
     val data = GraphData()
     val staysAt = Relation[Person, Home](agentID, "STAYS_AT", homeId)
     val houses = Relation[Home, Person](homeId, "HOUSES", agentID)
+
+    val infectionState = if (Disease.localizedWardInfections) setInitialPopulation(villageTown) else if (Disease.localizedHouseListInfections) setInitialPopulation(homeId) else setInitialPopulation()
 
     val schoolID = row("school_id").toLong
     val officeID = row("WorkPlaceID").toLong // /100 // ToDo: Fix the synthetic population so that we don't need to do this
@@ -284,6 +285,21 @@ object Main extends LazyLogging {
 
     ingestedPopulation = ingestedPopulation + 1
     data
+  }
+
+  private def setInitialPopulation(houseID: Long): String = {
+    if (Disease.initialInfectedHouseholds.contains(houseID)) {
+      "Exposed"
+    }
+    else {
+      val x = splittableRandom.nextDouble()
+      if (x <= Disease.initialRecoveredFraction) {
+        "Recovered"
+      }
+      else {
+        "Susceptible"
+      }
+    }
   }
 
   private def setInitialPopulation(adminUnit: String): String = {
