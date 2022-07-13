@@ -62,7 +62,9 @@ object Main extends LazyLogging {
           case "VT"     => { Disease.vaccinationTriggerFraction = value.toFloat / 100; logger.info("Set vaccination trigger fraction to "+Disease.vaccinationTriggerFraction) }
           case "USA"    => { Disease.unlockSchoolsAt = value.toInt; logger.info("Set day to unlock schools at to "+Disease.unlockSchoolsAt) }
           case "LT"     => { Disease.lockdownTriggerFraction = value.toFloat / 100; logger.info("Set lockdown trigger fraction to "+Disease.lockdownTriggerFraction) }
-          case _        => { throw new Exception(s"Unsupported flag: \""+key+"\". Available flags are \"INPUT\", \"OUTPUT\", \"IR\", \"IV1\", \"IV2\", \"DVR\", \"VT\", \"USA\", \"LT\".") }
+          case "SEED"   => { if(value.toUpperCase=="WARD") { Disease.localizedWardInfections = true; logger.info("Set initial infections to single ward "+Disease.initialInfectedWard) }
+                             else if(value.toUpperCase=="HOUSEHOLDS") { Disease.localizedHouseListInfections = true; logger.info("Set initial infections to household list: "+Disease.initialInfectedHouseholds) }}
+          case _        => { throw new Exception(s"Unsupported flag: \""+key+"\". Available flags are \"INPUT\", \"OUTPUT\", \"IR\", \"IV1\", \"IV2\", \"DVR\", \"VT\", \"USA\", \"LT\", \"SEED\".") }
         }
       }
     }
@@ -703,7 +705,7 @@ object Main extends LazyLogging {
       (lockdownSchedule,
         (agent: Agent, context: Context) => {
           val isEssentialWorker = agent.asInstanceOf[Person].isEssentialWorker
-          val violateLockdown = false // Currently, no one violates the lockdown // agent.asInstanceOf[Person].violateLockdown
+          val violateLockdown = agent.asInstanceOf[Person].violateLockdown // Changed back // Currently, no one violates the lockdown // agent.asInstanceOf[Person].violateLockdown
           val isLockdown = context.activeInterventionNames.contains(interventionName)
           isLockdown && !(isEssentialWorker || violateLockdown)
         },
