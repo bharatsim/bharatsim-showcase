@@ -62,9 +62,10 @@ object Main extends LazyLogging {
           case "VT"     => { Disease.vaccinationTriggerFraction = value.toFloat / 100; logger.info("Set vaccination trigger fraction to "+Disease.vaccinationTriggerFraction) }
           case "USA"    => { Disease.unlockSchoolsAt = value.toInt; logger.info("Set day to unlock schools at to "+Disease.unlockSchoolsAt) }
           case "LT"     => { Disease.lockdownTriggerFraction = value.toFloat / 100; logger.info("Set lockdown trigger fraction to "+Disease.lockdownTriggerFraction) }
+          case "LAT"    => { Disease.lockdownAdherenceThreshold = value.toFloat / 100; logger.info("Set lockdown adherence threshold to "+Disease.lockdownAdherenceThreshold) }
           case "SEED"   => { if(value.toUpperCase=="WARD") { Disease.localizedWardInfections = true; logger.info("Set initial infections to single ward "+Disease.initialInfectedWard) }
                              else if(value.toUpperCase=="HOUSEHOLDS") { Disease.localizedHouseListInfections = true; logger.info("Set initial infections to household list: "+Disease.initialInfectedHouseholds) }}
-          case _        => { throw new Exception(s"Unsupported flag: \""+key+"\". Available flags are \"INPUT\", \"OUTPUT\", \"IR\", \"IV1\", \"IV2\", \"DVR\", \"VT\", \"USA\", \"LT\", \"SEED\".") }
+          case _        => { throw new Exception(s"Unsupported flag: \""+key+"\". Available flags are \"INPUT\", \"OUTPUT\", \"IR\", \"IV1\", \"IV2\", \"DVR\", \"VT\", \"USA\", \"LT\", \"LAT\", \"SEED\".") }
         }
       }
     }
@@ -176,7 +177,7 @@ object Main extends LazyLogging {
     val agentID = row("Agent_ID").toLong
     val age = row("Age").toInt
     val isEssentialWorker = row("essential_worker").toInt == 1
-    val violateLockdown = row("Adherence_to_Intervention").toFloat < 0.5
+    val violateLockdown = row("Adherence_to_Intervention").toFloat > Disease.lockdownAdherenceThreshold
 
     val villageTown = row("AdminUnitName")
     val lat = row("H_Lat")
@@ -536,7 +537,7 @@ object Main extends LazyLogging {
     val conditionMet = getInfectedCount(context) >= Disease.vaccinationTriggerFraction*ingestedPopulation
       if (conditionMet) {
         vaccinationStarted = context.getCurrentStep * Disease.dt
-        logger.info("Vaccination started on day "+vaccinationStarted*Disease.dt)
+        logger.info("Vaccination started on day "+vaccinationStarted)
       }
       conditionMet
     }

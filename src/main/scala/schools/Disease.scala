@@ -30,6 +30,7 @@ object Disease {
   var vaccinationTriggerFraction: Float = 101f / 100 //TODO: Check default values
 
   var lockdownTriggerFraction: Float = 101f / 100 //TODO: Check default values
+  var lockdownAdherenceThreshold: Float = 75f / 100
 
   var rampUpBeta = false
 
