@@ -21,11 +21,9 @@ case class SusceptibleState() extends State {
     if (agent.asInstanceOf[Person].isSusceptible) {
 
       val agentBeta = rampedUpBeta(agent.asInstanceOf[Person].beta, t = context.getCurrentStep * Disease.dt, agent = agent)
-      agentGamma = if (agent.asInstanceOf[Person].vaccineShots == 0) {
-        agent.asInstanceOf[Person].gamma
-      }
 
-      else vaccinatedParameter(context, agent, agent.asInstanceOf[Person].gamma, Disease.vaccinatedGammaFractionalIncrease_firstShot, Disease.vaccinatedGammaFractionalIncrease_secondShot)
+      agentGamma = if (agent.asInstanceOf[Person].vaccineShots == 0) agent.asInstanceOf[Person].gamma
+                   else vaccinatedParameter(context, agent, agent.asInstanceOf[Person].gamma, Disease.vaccinatedGammaFractionalIncrease_firstShot, Disease.vaccinatedGammaFractionalIncrease_secondShot)
 
       val schedule = context.fetchScheduleFor(agent.asInstanceOf[Person]).get
 

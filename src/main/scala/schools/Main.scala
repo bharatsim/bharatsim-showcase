@@ -11,7 +11,7 @@ import com.bharatsim.engine.graph.GraphNode
 import com.bharatsim.engine.graph.ingestion.{GraphData, Relation}
 import com.bharatsim.engine.graph.patternMatcher.EmptyPattern
 import com.bharatsim.engine.graph.patternMatcher.MatchCondition._
-import com.bharatsim.engine.intervention.{Intervention, SingleInvocationIntervention}
+import com.bharatsim.engine.intervention.{Intervention, OffsetBasedIntervention, SingleInvocationIntervention}
 import com.bharatsim.engine.listeners.{CsvOutputGenerator, SimulationListenerRegistry}
 import com.bharatsim.engine.models.Agent
 import com.typesafe.scalalogging.LazyLogging
@@ -62,7 +62,6 @@ object Main extends LazyLogging {
           case "VT"     => { Disease.vaccinationTriggerFraction = value.toFloat / 100; logger.info("Set vaccination trigger fraction to "+Disease.vaccinationTriggerFraction) }
           case "USA"    => { Disease.unlockSchoolsAt = value.toInt; logger.info("Set day to unlock schools at to "+Disease.unlockSchoolsAt) }
           case "LT"     => { Disease.lockdownTriggerFraction = value.toFloat / 100; logger.info("Set lockdown trigger fraction to "+Disease.lockdownTriggerFraction) }
-          case "LAT"    => { Disease.lockdownAdherenceThreshold = value.toFloat / 100; logger.info("Set lockdown adherence threshold to "+Disease.lockdownAdherenceThreshold) }
           case "SEED"   => { if(value.toUpperCase=="WARD") { Disease.localizedWardInfections = true; logger.info("Set initial infections to single ward "+Disease.initialInfectedWard) }
                              else if(value.toUpperCase=="HOUSEHOLDS") { Disease.localizedHouseListInfections = true; logger.info("Set initial infections to household list: "+Disease.initialInfectedHouseholds) }}
           case _        => { throw new Exception(s"Unsupported flag: \""+key+"\". Available flags are \"INPUT\", \"OUTPUT\", \"IR\", \"IV1\", \"IV2\", \"DVR\", \"VT\", \"USA\", \"LT\", \"LAT\", \"SEED\".") }
@@ -177,7 +176,7 @@ object Main extends LazyLogging {
     val agentID = row("Agent_ID").toLong
     val age = row("Age").toInt
     val isEssentialWorker = row("essential_worker").toInt == 1
-    val violateLockdown = row("Adherence_to_Intervention").toFloat > Disease.lockdownAdherenceThreshold
+    val violateLockdown = splittableRandom.nextDouble() < row("Adherence_to_Intervention").toFloat
 
     val villageTown = row("AdminUnitName")
     val lat = row("H_Lat")
@@ -696,8 +695,8 @@ object Main extends LazyLogging {
     val DeactivationCondition = (context: Context) => {
       context.getCurrentStep >= ActivatedAt + (LockdownDurationDays * Disease.inverse_dt) // 15 day lockdown is the default value
     }
-    val intervention = SingleInvocationIntervention(interventionName, activationCondition, DeactivationCondition, firstTimeExecution)
-
+//    val intervention = SingleInvocationIntervention(interventionName, activationCondition, DeactivationCondition, firstTimeExecution)
+    val intervention = OffsetBasedIntervention(interventionName, activationCondition, LockdownDurationDays*Disease.inverse_dt, firstTimeExecution)
 
     val lockdownSchedule = (Disease.myDay, Disease.myTick).add[Home](0, 1)
 
@@ -706,7 +705,7 @@ object Main extends LazyLogging {
       (lockdownSchedule,
         (agent: Agent, context: Context) => {
           val isEssentialWorker = agent.asInstanceOf[Person].isEssentialWorker
-          val violateLockdown = agent.asInstanceOf[Person].violateLockdown // Changed back // Currently, no one violates the lockdown // agent.asInstanceOf[Person].violateLockdown
+          val violateLockdown = agent.asInstanceOf[Person].violateLockdown
           val isLockdown = context.activeInterventionNames.contains(interventionName)
           isLockdown && !(isEssentialWorker || violateLockdown)
         },
