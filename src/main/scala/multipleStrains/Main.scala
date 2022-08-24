@@ -222,8 +222,8 @@ object Main extends LazyLogging {
       gamma1 = 1.0 - Disease.ageStratifiedOneMinusGamma.getOrElse(roundToAgeRange(age), Disease.ageStratifiedOneMinusGamma(99)),
       gamma2 = 1.0 - Disease.ageStratifiedOneMinusGamma.getOrElse(roundToAgeRange(age), Disease.ageStratifiedOneMinusGamma(99)),
       betaMultiplier   = 1,
-      gammaMultiplier  = 1,
-      gammaMultiplier2 = 1,
+      gammaFractionalIncrease1 = 1, // TODO: Remove or use this?
+      gammaFractionalIncrease2 = 1, // TODO: Remove or use this?
       exitTime  = exitTime1,
       exitTime2 = exitTime2,
       prevaccinate = prevaccinate

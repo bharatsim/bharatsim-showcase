@@ -12,41 +12,41 @@ import multipleStrains.{Disease, Main}
 import multipleStrains.Main.{firstShotsAvailableThisTick, secondShotsAvailableThisTick}
 
 case class Person(
-    id: Long,
-    age: Int,
-    infectionState: InfectionStatus,
-    infectionState2: InfectionStatus,
-    isEssentialWorker: Boolean,
-    violateLockdown: Boolean,
-    village_town: String,
-    lat: String,
-    long: String,
-    isEmployee: Boolean,
-    isStudent: Boolean,
-    isTeacher: Boolean,
-    isHomebound: Boolean,
-    gamma1: Double,
-    gamma2: Double,
-    betaMultiplier: Double,
-    gammaMultiplier: Double,
-    gammaMultiplier2: Double,
-    exitTime: Double,
-    exitTime2: Double,
-    currentLocation: String = "",
-    prevaccinate: Boolean = false,
-    vaccinationStatus: Boolean = false,
-    vaccineShots: Int = 0,
-    shouldGetFirstShot: Boolean = false,
-    shouldGetSecondShot: Boolean = false,
-    receivedFirstShotOn: Double = 10000,
-    receivedSecondShotOn: Double = 10000,
-    gamma1MaxFirstShot: Double = -1.0,
-    gamma1MaxSecondShot: Double = -1.0,
-    gamma2MaxFirstShot: Double = -1.0,
-    gamma2MaxSecondShot: Double = -1.0,
-    infectedPeople: Int = 0,
-    wasInfectedAt: String = "",
-    wasInfectedBy: String = "" // TODO: Include a wasInfected2By, for the second strain
+                   id: Long,
+                   age: Int,
+                   infectionState: InfectionStatus,
+                   infectionState2: InfectionStatus,
+                   isEssentialWorker: Boolean,
+                   violateLockdown: Boolean,
+                   village_town: String,
+                   lat: String,
+                   long: String,
+                   isEmployee: Boolean,
+                   isStudent: Boolean,
+                   isTeacher: Boolean,
+                   isHomebound: Boolean,
+                   gamma1: Double,
+                   gamma2: Double,
+                   betaMultiplier: Double,
+                   gammaFractionalIncrease1: Double,
+                   gammaFractionalIncrease2: Double,
+                   exitTime: Double,
+                   exitTime2: Double,
+                   currentLocation: String = "",
+                   prevaccinate: Boolean = false,
+                   vaccinationStatus: Boolean = false,
+                   vaccineShots: Int = 0,
+                   shouldGetFirstShot: Boolean = false,
+                   shouldGetSecondShot: Boolean = false,
+                   receivedFirstShotOn: Double = 10000,
+                   receivedSecondShotOn: Double = 10000,
+                   gamma1MaxFirstShot: Double = -1.0,
+                   gamma1MaxSecondShot: Double = -1.0,
+                   gamma2MaxFirstShot: Double = -1.0,
+                   gamma2MaxSecondShot: Double = -1.0,
+                   infectedPeople: Int = 0,
+                   wasInfectedAt: String = "",
+                   wasInfectedBy: String = "" // TODO: Include a wasInfected2By, for the second strain
 ) extends Agent {
 
   def decodeNode(classType: String, node: GraphNode): Network = {
@@ -118,7 +118,7 @@ case class Person(
         val infectedFraction2 = infectedFractionTuple._2
 
         if (this.isSusceptible && multiplier > 0) {
-          val agentBeta1: Double = multiplier * this.betaMultiplier * Disease.ageStratifiedBetaMultiplier.getOrElse(roundToAgeRange(age), Disease.ageStratifiedBetaMultiplier(99)) * Disease.beta
+          val agentBeta1: Double = multiplier * this.betaMultiplier * Disease.ageStratifiedBetaMultiplier.getOrElse(roundToAgeRange(age), Disease.ageStratifiedBetaMultiplier(99)) * rampedUpBeta(Disease.beta, t = context.getCurrentStep * Disease.dt, agent = this)
 
           val shouldGetInfected = biasedCoinToss(agentBeta1 * Disease.dt * infectedFraction)
           if (shouldGetInfected) {
@@ -132,7 +132,7 @@ case class Person(
         }
 
         if (this.isSusceptible2 && multiplier2 > 0) {
-          val agentBeta2: Double = multiplier2 * this.betaMultiplier * Disease.ageStratifiedBetaMultiplier.getOrElse(roundToAgeRange(age), Disease.ageStratifiedBetaMultiplier(99)) * Disease.beta2
+          val agentBeta2: Double = multiplier2 * this.betaMultiplier * Disease.ageStratifiedBetaMultiplier.getOrElse(roundToAgeRange(age), Disease.ageStratifiedBetaMultiplier(99)) * rampedUpBeta(Disease.beta2, t = context.getCurrentStep * Disease.dt, agent = this)
 
           val shouldGetInfected = biasedCoinToss(agentBeta2 * Disease.dt * infectedFraction2)
           if (shouldGetInfected) {
@@ -149,9 +149,15 @@ case class Person(
   }
 
   private def exitExposed(context: Context): Unit = {
+
+    val vaccinatedGammas = vaccinatedParameter(context=context, agent=this, parameter1 = this.gamma1, parameter2 = this.gamma2, Disease.vaccinatedGammaFractionalIncrease_firstShot, Disease.vaccinatedGammaFractionalIncrease_secondShot)
+
+    val vaccinatedGamma1 = vaccinatedGammas._1
+    val vaccinatedGamma2 = vaccinatedGammas._2
+
     if (this.isExposed && context.getCurrentStep >= this.exitTime) {
-      val agentGamma1: Double = this.gamma1
-      if (biasedCoinToss(agentGamma1 * (1 + this.gammaMultiplier))) {
+      val agentGamma1: Double = vaccinatedGamma1
+      if (biasedCoinToss(agentGamma1)) {
         updateParam("infectionState", Asymptomatic)
         updateParam(
           "exitTime",
@@ -168,8 +174,8 @@ case class Person(
     }
 
     if (this.isExposed2 && context.getCurrentStep >= this.exitTime2) {
-      val agentGamma2: Double = this.gamma2
-      if (biasedCoinToss(agentGamma2 * (1 + this.gammaMultiplier2))) {
+      val agentGamma2: Double = vaccinatedGamma2
+      if (biasedCoinToss(agentGamma2)) {
         updateParam("infectionState2", Asymptomatic2)
         updateParam(
           "exitTime2",
@@ -336,6 +342,53 @@ case class Person(
   addBehaviour(exitInfectedMild)
   addBehaviour(exitInfectedSevere)
   addBehaviour(exitHospitalised)
+
+  def vaccinatedParameter(context: Context, agent: Agent, parameter1: Double, parameter2: Double, fractionalIncrease_firstShot: Double, fractionalIncrease_secondShot: Double, rampUpTime: Double = 14.0): (Double, Double) = {
+
+    val t = context.getCurrentStep * Disease.dt
+
+    if (this.vaccineShots == 1) {
+      val vday = this.receivedFirstShotOn
+      val parameter1_1shot = this.gamma1
+      val parameter2_1shot = this.gamma2
+      (List(parameter1_1shot + (this.gamma1MaxFirstShot - parameter1_1shot) * (t - vday) / rampUpTime, this.gamma1MaxFirstShot).min, List(parameter2_1shot + (this.gamma2MaxFirstShot - parameter2_1shot) * (t - vday) / rampUpTime, this.gamma2MaxFirstShot).min)
+    }
+    else if (this.vaccineShots == 2) {
+      val vday = this.receivedSecondShotOn //TODO: Incorporate this better
+      val parameter1_2shot = List(this.gamma1MaxFirstShot * (t - this.receivedFirstShotOn) / rampUpTime, this.gamma1MaxFirstShot).min
+      val parameter2_2shot = List(this.gamma2MaxFirstShot * (t - this.receivedFirstShotOn) / rampUpTime, this.gamma2MaxFirstShot).min
+      (List(parameter1_2shot + (this.gamma1MaxSecondShot - parameter1_2shot) * (t - vday) / rampUpTime, this.gamma1MaxSecondShot).min, List(parameter2_2shot + (this.gamma2MaxSecondShot - parameter2_2shot) * (t - vday) / rampUpTime, this.gamma2MaxSecondShot).min)
+    }
+    else {
+      (parameter1,parameter2)
+    }
+
+  }
+
+  private def rampedUpBeta(beta: Double, t: Double, agent: Agent, reduction: Double = 0.6, rampUpTime: Double = 90, vaccineRampUpTime: Double = 14): Double = {
+
+    val shot = this.vaccineShots
+
+    val agentBeta = if (shot == 1) {
+      val vday = this.receivedFirstShotOn
+      List(List(beta + (beta * Disease.vaccinatedBetaMultiplier_firstShot - beta) * (t - vday) / vaccineRampUpTime, beta * Disease.vaccinatedBetaMultiplier_firstShot).max, beta).min
+    }
+    else if (shot == 2) {
+      val vday = this.receivedSecondShotOn
+      val beta2 = beta * Disease.vaccinatedBetaMultiplier_firstShot
+      List(List(beta2 + (beta2 * Disease.vaccinatedBetaMultiplier_secondShot - beta2) * (t - vday) / vaccineRampUpTime, beta2 * Disease.vaccinatedBetaMultiplier_secondShot).max, beta2).min
+    }
+    else beta
+
+//    if (Disease.rampUpBeta) {
+//      List((1 - reduction) * agentBeta + reduction * t / rampUpTime, agentBeta).min
+//    }
+//    else {
+//      agentBeta
+//    }
+    agentBeta
+  }
+
 
   def vaccinatePerson(context: Context): Unit = {
 

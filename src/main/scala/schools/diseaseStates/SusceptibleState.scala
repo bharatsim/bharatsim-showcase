@@ -82,11 +82,11 @@ case class SusceptibleState() extends State {
 
     if (agent.asInstanceOf[Person].vaccineShots == 1) {
       val vday = agent.asInstanceOf[Person].receivedFirstShotOn
-      List(parameter + (1 - (fractionalIncrease_firstShot / Disease.vaccinatedBetaMultiplier_firstShot) * (1 - parameter) - parameter) * (t - vday) / rampUpTime, parameter + (1 - (fractionalIncrease_firstShot / Disease.vaccinatedBetaMultiplier_firstShot) * (1 - parameter) - parameter)).min
+      List(agent.asInstanceOf[Person].gammaMaxFirstShot * (t - vday) / rampUpTime, agent.asInstanceOf[Person].gammaMaxFirstShot).min
     }
     else if (agent.asInstanceOf[Person].vaccineShots == 2) {
       val vday = agent.asInstanceOf[Person].receivedSecondShotOn
-      val parameter2 = parameter + (1 - (fractionalIncrease_firstShot / Disease.vaccinatedBetaMultiplier_firstShot) * (1 - parameter) - parameter) //parameter + fractionalIncrease_firstShot*(1 - parameter)
+      val parameter2 = agent.asInstanceOf[Person].gammaMaxFirstShot
       List(parameter2 + (1 - (fractionalIncrease_secondShot / Disease.vaccinatedBetaMultiplier_secondShot) * (1 - parameter2) - parameter2) * (t - vday) / rampUpTime, parameter2 + (1 - (fractionalIncrease_secondShot / Disease.vaccinatedBetaMultiplier_secondShot) * (1 - parameter2) - parameter2)).min
     }
     else {
@@ -106,7 +106,7 @@ case class SusceptibleState() extends State {
     else if (shot == 2) {
       val vday = agent.asInstanceOf[Person].receivedSecondShotOn
       val beta2 = beta * Disease.vaccinatedBetaMultiplier_firstShot
-      List(List(beta + (beta2 * Disease.vaccinatedBetaMultiplier_secondShot - beta2) * (t - vday) / vaccineRampUpTime, beta2 * Disease.vaccinatedBetaMultiplier_secondShot).max, beta2).min
+      List(List(beta2 + (beta2 * Disease.vaccinatedBetaMultiplier_secondShot - beta2) * (t - vday) / vaccineRampUpTime, beta2 * Disease.vaccinatedBetaMultiplier_secondShot).max, beta2).min
     }
     else beta
 
