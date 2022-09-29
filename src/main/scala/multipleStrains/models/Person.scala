@@ -467,7 +467,7 @@ case class Person(
   }
 
 
-  if (Disease.vaccinationRate > 0 && Disease.vaccinationTriggerFraction <= 1) {
+  if (Disease.vaccinationRate > 0 && (Disease.vaccinationTriggerFraction <= 1 || Disease.vaccinationStartDate < Disease.simulationStopDay)) {
     addBehaviour(vaccinatePerson)
   }
 

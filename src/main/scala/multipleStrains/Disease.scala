@@ -9,6 +9,8 @@ object Disease {
 
   // Simulation parameters (not disease related) ******************* //
 
+  val simulationStopDay = 400
+
   // Time step parameters:
 
   final val inverse_dt = 2
@@ -27,6 +29,10 @@ object Disease {
   var prevaccinateFamilies: Boolean = false
 
   var vaccinationTriggerFraction: Float = 101f / 100
+  var vaccinationTriggeredByInfectedFraction = false
+
+  var vaccinationTriggeredByDate = true
+  var vaccinationStartDate = 10000;
 
   var lockdownTriggerFraction: Float = 101f / 100
 

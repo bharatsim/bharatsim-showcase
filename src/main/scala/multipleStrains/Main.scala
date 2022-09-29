@@ -56,12 +56,13 @@ object Main extends LazyLogging {
           case "IV1"    => { Disease.prevaccinatedOneShotFraction = value.toFloat / 100; logger.info("Set initial one-shot vaccination fraction to "+Disease.prevaccinatedOneShotFraction) }
           case "IV2"    => { Disease.prevaccinatedTwoShotFraction = value.toFloat / 100; logger.info("Set initial two-shot vaccination fraction to "+Disease.prevaccinatedTwoShotFraction) }
           case "DVR"    => { Disease.vaccinationRate = value.toDouble / 100; logger.info("Set daily vaccination rate to "+Disease.vaccinationRate) }
-          case "VT"     => { Disease.vaccinationTriggerFraction = value.toFloat / 100; logger.info("Set vaccination trigger fraction to "+Disease.vaccinationTriggerFraction) }
+          case "VT"     => { Disease.vaccinationTriggerFraction = value.toFloat / 100; Disease.vaccinationTriggeredByInfectedFraction = true; Disease.vaccinationTriggeredByDate= false; logger.info("Set vaccination to trigger when infected fraction is "+Disease.vaccinationTriggerFraction+". All previous triggers overridden.") }
+          case "VSD"    => { Disease.vaccinationStartDate = value.toInt; Disease.vaccinationTriggeredByDate = true; Disease.vaccinationTriggeredByInfectedFraction=false; logger.info("Set vaccination to trigger on day "+Disease.vaccinationStartDate+". All previous triggers overridden.") }
           case "USA"    => { Disease.unlockSchoolsAt = value.toInt; logger.info("Set day to unlock schools at to "+Disease.unlockSchoolsAt) }
           case "LT"     => { Disease.lockdownTriggerFraction = value.toFloat / 100; logger.info("Set lockdown trigger fraction to "+Disease.lockdownTriggerFraction) }
           case "RR"     => { Disease.reinfectionRisk = value.toFloat / 100; logger.info("Set reinfection risk to "+Disease.reinfectionRisk) }
           case "SEED"   => { if(value.toUpperCase=="WARD") { Disease.localizedWardInfections = true; logger.info("Set initial infections to single ward "+Disease.initialInfectedWard) }
-          else if(value.toUpperCase=="HOUSEHOLDS") { Disease.localizedHouseListInfections = true; logger.info("Set initial infections to household list: "+Disease.initialInfectedHouseholds) }}
+                             else if(value.toUpperCase=="HOUSEHOLDS") { Disease.localizedHouseListInfections = true; logger.info("Set initial infections to household list: "+Disease.initialInfectedHouseholds) }}
           case _        => { throw new Exception(s"Unsupported flag: \""+key+"\". Available flags are \"INPUT\", \"OUTPUT\", \"IR\", \"IV1\", \"IV2\", \"DVR\", \"VT\", \"USA\", \"LT\", \"RR\", \"SEED\".") }
         }
       }
@@ -97,7 +98,7 @@ object Main extends LazyLogging {
         prevaccination(shot = 2)
       }
 
-      if (Disease.vaccinationRate != 0 && Disease.vaccinationTriggerFraction <= 1) {
+      if (Disease.vaccinationRate != 0 && (Disease.vaccinationTriggerFraction <= 1 || Disease.vaccinationStartDate < Disease.simulationStopDay)) {
         vaccination
       }
 
@@ -115,7 +116,7 @@ object Main extends LazyLogging {
       registerAction(
         StopSimulation,
         (c: Context) => {
-          c.getCurrentStep >= (400 * Disease.inverse_dt)
+          c.getCurrentStep >= (Disease.simulationStopDay * Disease.inverse_dt)
         }
       )
 
@@ -497,8 +498,15 @@ object Main extends LazyLogging {
     var ActivatedAt = 0
     val interventionName = "vaccination"
     val activationCondition = (context: Context) => {
-//      val conditionMet = context.getCurrentStep >= 0
-    val conditionMet = getInfectedCount(context) >= Disease.vaccinationTriggerFraction*ingestedPopulation
+      var conditionMet = false;
+
+      if(Disease.vaccinationTriggeredByDate){
+        conditionMet = context.getCurrentStep*Disease.dt >= Disease.vaccinationStartDate
+      }
+      else{
+        conditionMet = getInfectedCount(context) >= Disease.vaccinationTriggerFraction*ingestedPopulation
+      }
+
       if (conditionMet) {
         vaccinationStarted = context.getCurrentStep * Disease.dt
         logger.info("Vaccination started on day "+vaccinationStarted)
