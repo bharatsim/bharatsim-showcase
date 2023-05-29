@@ -36,11 +36,11 @@ object Main extends LazyLogging {
 
   var ageWiseVaccinesAdministered: Array[Int] = Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-  private var vaccinationStarted: Double = 0
+  private var vaccinationStarted: Double = 1000
   private var ingestedPopulation = 0
-  private var schoolsClosedOn: Double = 0
+  private var schoolsClosedOn: Double = 1000
   private var schoolsOpenedOn: Double = 0
-  private var lockdownStartedOn: Double = 0
+  private var lockdownStartedOn: Double = 1000
 
   def parseArgs(args: Array[String]): Unit = {
 
@@ -68,7 +68,8 @@ object Main extends LazyLogging {
                              else if(value.toUpperCase=="HOUSEHOLDS") { Disease.localizedHouseListInfections = true; logger.info("Set initial infections to household list: "+Disease.initialInfectedHouseholds) }}
           case "LWO"    => { Disease.wardLockdownOn = value.toInt; logger.info("Set ward-lockdown to trigger on day "+Disease.wardLockdownOn)}
           case "WLD"    => { Disease.wardLockdownDurationDays = value.toInt; logger.info("Set ward-lockdown duration to "+Disease.wardLockdownDurationDays+" days") }
-          case _        => { throw new Exception(s"Unsupported flag: \""+key+"\". Available flags are \"INPUT\", \"OUTPUT\", \"IR\", \"IV1\", \"IV2\", \"DVR\", \"VT\", \"USA\", \"LT\", \"LAT\", \"SEED\", \"LWO\", \"WLD\".") }
+          case "BETA"   => { Disease.lambda_S = value.toDouble; logger.info("Set beta (lambda_S) to "+Disease.lambda_S) }
+          case _        => { throw new Exception(s"Unsupported flag: \""+key+"\". Available flags are \"INPUT\", \"OUTPUT\", \"IR\", \"IV1\", \"IV2\", \"DVR\", \"VT\", \"USA\", \"LT\", \"LAT\", \"SEED\", \"LWO\", \"WLD\", \"BETA\".") }
         }
       }
     }
@@ -78,9 +79,9 @@ object Main extends LazyLogging {
     var beforeCount = 0
     val simulation = Simulation()
 
-    logger.info("Bare Beta = " + Disease.lambda_S)
-
     parseArgs(args)
+
+    logger.info("Bare Beta = " + Disease.lambda_S)
 
     logger.info("Phase1 " + Disease.phase1 + " ends on day " + Disease.phase1_endDate)
     logger.info("Phase2 " + Disease.phase2 + " ends on day " + Disease.phase2_endDate)
@@ -154,21 +155,21 @@ object Main extends LazyLogging {
       SimulationListenerRegistry.register(
         new CsvOutputGenerator(Disease.outputPath + "total_output" + label + "_" + rn + ".csv", new SIROutput(context))
       )
-//      SimulationListenerRegistry.register(
-//        new CsvOutputGenerator(Disease.outputPath + "agewise_output" + label + "_" + rn + ".csv", new SIRAgewiseOutput(context))
-//      )
+      SimulationListenerRegistry.register(
+        new CsvOutputGenerator(Disease.outputPath + "agewise_output" + label + "_" + rn + ".csv", new SIRAgewiseOutput(context))
+      )
 //      SimulationListenerRegistry.register(
 //        new CsvOutputGenerator(Disease.outputPath + "infectioninfo_output" + label + "_" + rn + ".csv", new InfectionInfoOutput(context))
 //      )
-      SimulationListenerRegistry.register(
-        new CsvOutputGenerator(Disease.outputPath + "GIS_output" + label + "_" + rn + ".csv", new GISOutputSpec(context))
-      )
-      SimulationListenerRegistry.register(
-        new CsvOutputGenerator(Disease.outputPath + "Wardwise_output" + label + "_" + rn + ".csv", new WardwiseOutputSpec(context))
-      )
-        SimulationListenerRegistry.register(
-          new CsvOutputGenerator(Disease.outputPath + "Gridded_output" + label + "_" + rn + ".csv", new GriddedOutputSpec(context))
-        )
+//      SimulationListenerRegistry.register(
+//        new CsvOutputGenerator(Disease.outputPath + "GIS_output" + label + "_" + rn + ".csv", new GISOutputSpec(context))
+//      )
+//      SimulationListenerRegistry.register(
+//        new CsvOutputGenerator(Disease.outputPath + "Wardwise_output" + label + "_" + rn + ".csv", new WardwiseOutputSpec(context))
+//      )
+//      SimulationListenerRegistry.register(
+//        new CsvOutputGenerator(Disease.outputPath + "Gridded_output" + label + "_" + rn + ".csv", new GriddedOutputSpec(context))
+//      )
     }
 
     simulation.onCompleteSimulation { implicit context =>
