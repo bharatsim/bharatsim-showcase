@@ -13,3 +13,7 @@ project/*
 !project/assembly.sbt
 !project/build.properties
 .*
+*.ipynb
+*.py
+_*
+gsharp
