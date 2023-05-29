@@ -24,6 +24,8 @@ object Main extends LazyLogging {
 
   var initialExposedNumber = 3000 // toDo: Don't hardcode it!
 
+  val n_grid = 100 // Number of grid boxes. The city is divided into n_grid x n_grid boxes
+
   final val splittableRandom: RandomNumberGenerator = RandomNumberGenerator()
 
   var vaccinesAdministered: Int = 0
@@ -64,7 +66,9 @@ object Main extends LazyLogging {
           case "LT"     => { Disease.lockdownTriggerFraction = value.toFloat / 100; logger.info("Set lockdown trigger fraction to "+Disease.lockdownTriggerFraction) }
           case "SEED"   => { if(value.toUpperCase=="WARD") { Disease.localizedWardInfections = true; logger.info("Set initial infections to single ward "+Disease.initialInfectedWard) }
                              else if(value.toUpperCase=="HOUSEHOLDS") { Disease.localizedHouseListInfections = true; logger.info("Set initial infections to household list: "+Disease.initialInfectedHouseholds) }}
-          case _        => { throw new Exception(s"Unsupported flag: \""+key+"\". Available flags are \"INPUT\", \"OUTPUT\", \"IR\", \"IV1\", \"IV2\", \"DVR\", \"VT\", \"USA\", \"LT\", \"LAT\", \"SEED\".") }
+          case "LWO"    => { Disease.wardLockdownOn = value.toInt; logger.info("Set ward-lockdown to trigger on day "+Disease.wardLockdownOn)}
+          case "WLD"    => { Disease.wardLockdownDurationDays = value.toInt; logger.info("Set ward-lockdown duration to "+Disease.wardLockdownDurationDays+" days") }
+          case _        => { throw new Exception(s"Unsupported flag: \""+key+"\". Available flags are \"INPUT\", \"OUTPUT\", \"IR\", \"IV1\", \"IV2\", \"DVR\", \"VT\", \"USA\", \"LT\", \"LAT\", \"SEED\", \"LWO\", \"WLD\".") }
         }
       }
     }
@@ -107,6 +111,10 @@ object Main extends LazyLogging {
 
       if (Disease.lockdownTriggerFraction <= 1) {
         lockdown
+      }
+
+      if(Disease.wardLockdownOn<1000) {
+        wardLockdown
       }
 
       create12HourSchedules()
@@ -158,6 +166,9 @@ object Main extends LazyLogging {
       SimulationListenerRegistry.register(
         new CsvOutputGenerator(Disease.outputPath + "Wardwise_output" + label + "_" + rn + ".csv", new WardwiseOutputSpec(context))
       )
+        SimulationListenerRegistry.register(
+          new CsvOutputGenerator(Disease.outputPath + "Gridded_output" + label + "_" + rn + ".csv", new GriddedOutputSpec(context))
+        )
     }
 
     simulation.onCompleteSimulation { implicit context =>
@@ -172,26 +183,44 @@ object Main extends LazyLogging {
 
   }
 
+  def gridBox(lat: Float, long: Float): (Int, Int) = {
+//    Min latitude is 18.4097 Max latitude is 18.62132
+//    Min longitude is 73.75408 Max longitude is 73.96275
+    val minLat = 18.4097; val maxLat = 18.62132; val minLong = 73.75408; val maxLong = 73.96275;
+
+    val deltaLat  = (maxLat-minLat).toFloat/n_grid
+    val deltaLong = (maxLong-minLong).toFloat/n_grid
+
+    val latcood = List(List(((lat-minLat).toFloat/deltaLat).toInt,0).max, n_grid-1).min
+    val longcood = List(List(((long-minLong).toFloat/deltaLong).toInt,0).max, n_grid-1).min
+
+    (latcood,longcood)
+  }
+
   def mapper(row: Map[String, String]): GraphData = {
     val agentID = row("Agent_ID").toLong
     val age = row("Age").toInt
     val isEssentialWorker = row("essential_worker").toInt == 1
     val violateLockdown = splittableRandom.nextDouble() < row("Adherence_to_Intervention").toFloat
 
-    val villageTown = row("AdminUnitName")
-    val lat = row("H_Lat")
-    val long = row("H_Lon")
+    val homeWard = row("AdminUnitName")
+    val lat = row("H_Lat").toFloat
+    val long = row("H_Lon").toFloat
     val homeId = row("HHID").toLong
-    val home = Home(homeId)
+    val home = Home(homeId, gridBox(lat,long))
     val data = GraphData()
     val staysAt = Relation[Person, Home](agentID, "STAYS_AT", homeId)
     val houses = Relation[Home, Person](homeId, "HOUSES", agentID)
 
-    val infectionState = if (Disease.localizedWardInfections) setInitialPopulation(villageTown) else if (Disease.localizedHouseListInfections) setInitialPopulation(homeId) else setInitialPopulation()
+    val infectionState = if (Disease.localizedWardInfections) setInitialPopulation(homeWard) else if (Disease.localizedHouseListInfections) setInitialPopulation(homeId) else setInitialPopulation()
 
     val schoolID = row("school_id").toLong
     val officeID = row("WorkPlaceID").toLong // /100 // ToDo: Fix the synthetic population so that we don't need to do this
     // ToDo: Perhaps add an FOI?
+
+    val workplaceWard = row("WorkplaceAdminUnit")
+    val schoolWard = row("SchoolAdminUnit")
+
 
     val isEmployee: Boolean = officeID > 0
     val isTeacher: Boolean = officeID > 0 && schoolID > 0 && officeID == schoolID
@@ -227,14 +256,16 @@ object Main extends LazyLogging {
       sigma = agentSigma,
       isEssentialWorker,
       violateLockdown,
-      villageTown,
+      homeWard,
       lat,
       long,
       isEmployee,
       isStudent,
       isTeacher,
       isHomebound,
-      prevaccinate = prevaccinate
+      prevaccinate = prevaccinate,
+      workplaceWard = workplaceWard,
+      schoolWard = schoolWard
     )
 
     setCitizenInitialState(agent, infectionState)
@@ -708,6 +739,42 @@ object Main extends LazyLogging {
           val violateLockdown = agent.asInstanceOf[Person].violateLockdown
           val isLockdown = context.activeInterventionNames.contains(interventionName)
           isLockdown && !(isEssentialWorker || violateLockdown)
+        },
+        2
+      )
+    )
+  }
+
+
+  private def wardLockdown(implicit context: Context): Unit = {
+
+    var ActivatedAt = 0
+    val LockdownDurationDays = Disease.wardLockdownDurationDays // Lockdown goes on for 15 days by default
+    val interventionName = "wardLockdown"
+    val activationCondition = (context: Context) => {
+      val result = LockdownDurationDays >0 & context.getCurrentStep*Disease.dt == Disease.wardLockdownOn
+      if (result) {
+        lockdownStartedOn = context.getCurrentStep * Disease.dt
+        logger.info("Ward lockdown started on " + lockdownStartedOn)
+      }
+      result
+    }
+    val firstTimeExecution = (context: Context) => ActivatedAt = context.getCurrentStep
+
+    //    val intervention = SingleInvocationIntervention(interventionName, activationCondition, DeactivationCondition, firstTimeExecution)
+    val intervention = OffsetBasedIntervention(interventionName, activationCondition, (LockdownDurationDays*Disease.inverse_dt).toInt, firstTimeExecution)
+
+    val lockdownSchedule = (Disease.myDay, Disease.myTick).add[Home](0, 1)
+
+    registerIntervention(intervention)
+    registerSchedules(
+      (lockdownSchedule,
+        (agent: Agent, context: Context) => {
+          val staysOrWorksHere = Disease.lockdownWards.contains(agent.asInstanceOf[Person].villageTown) ||
+                                 Disease.lockdownWards.contains(agent.asInstanceOf[Person].workplaceWard) ||
+                                 Disease.lockdownWards.contains(agent.asInstanceOf[Person].schoolWard)
+          val isWardLockdown = context.activeInterventionNames.contains(interventionName)
+          isWardLockdown && staysOrWorksHere
         },
         2
       )

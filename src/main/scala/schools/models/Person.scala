@@ -23,8 +23,8 @@ case class Person(agentId: Long,
                   isEssentialWorker: Boolean,
                   violateLockdown: Boolean,
                   villageTown: String,
-                  lat: String,
-                  long: String,
+                  lat: Float,
+                  long: Float,
                   isEmployee: Boolean,
                   isStudent: Boolean,
                   isTeacher: Boolean,
@@ -41,7 +41,9 @@ case class Person(agentId: Long,
                   gammaMaxSecondShot: Double = -1.0,
                   infectedPeople: Int = 0,
                   wasInfectedAt: String = "",
-                  wasInfectedBy: String = ""
+                  wasInfectedBy: String = "",
+                  workplaceWard: String = "",
+                  schoolWard: String = ""
                  ) extends StatefulAgent {
 
   def isExposed: Boolean = activeState.isInstanceOf[ExposedState]
