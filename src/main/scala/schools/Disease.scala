@@ -123,19 +123,18 @@ object Disease {
   final val presymptomaticDurationProbabilityDistribution = LogNormal(1.1, 0.9)
   final val asymptomaticDurationProbabilityDistribution = LogNormal(8, 2)
   final val mildSymptomaticDurationProbabilityDistribution = LogNormal(8, 2)
-  final val mildToSevereSymptomaticDurationProbabilityDistribution = LogNormal(6.6, 4.9)
   final val severeSymptomaticDurationProbabilityDistribution = LogNormal(1.5, 2.0)
   final val hospitalisedDurationProbabilityDistribution = LogNormal(18.1, 6.3)
 
 //  //  Possibility of Exponential Residence Times
 //  //  ******************************************
 //  //  All the samples drawn from these distributions represent days
-  //  final val exposedDurationProbabilityDistribution = Exponential(4.5)
-  //  final val presymptomaticDurationProbabilityDistribution = Exponential(1.1)
-  //  final val asymptomaticDurationProbabilityDistribution = Exponential(4.5)
-  //  final val mildSymptomaticDurationProbabilityDistribution = Exponential(8)
-  //  final val severeSymptomaticDurationProbabilityDistribution = Exponential(1.5)
-  //  final val HospitalisedProbabilityDuration = Exponential(18.1)
+//  final val exposedDurationProbabilityDistribution = Exponential(4.5)
+//  final val presymptomaticDurationProbabilityDistribution = Exponential(1.1)
+//  final val asymptomaticDurationProbabilityDistribution = Exponential(4.5)
+//  final val mildSymptomaticDurationProbabilityDistribution = Exponential(8)
+//  final val severeSymptomaticDurationProbabilityDistribution = Exponential(1.5)
+//  final val hospitalisedDurationProbabilityDistribution = Exponential(18.1)
 
   //**********************************************************************************//
 

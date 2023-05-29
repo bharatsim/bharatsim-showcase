@@ -371,7 +371,7 @@ object Main extends LazyLogging {
       case "Asymptomatic" => citizen.setInitialState(AsymptomaticState(Disease.inverse_dt * Disease.asymptomaticDurationProbabilityDistribution.sample()))
       case "Presymptomatic" => citizen.setInitialState(PresymptomaticState(Disease.inverse_dt * Disease.presymptomaticDurationProbabilityDistribution.sample(), splittableRandom.nextDouble() < citizen.delta))
       case "InfectedMild" => citizen.setInitialState(InfectedMildState(Disease.inverse_dt * Disease.mildSymptomaticDurationProbabilityDistribution.sample()))
-      case "InfectedSevere" => citizen.setInitialState(InfectedSevereState(Disease.inverse_dt * (Disease.severeSymptomaticDurationProbabilityDistribution.sample() + Disease.mildToSevereSymptomaticDurationProbabilityDistribution.sample()), toBeH = true)) // All SI go to H in IndSciSim
+      case "InfectedSevere" => citizen.setInitialState(InfectedSevereState(Disease.inverse_dt * (Disease.severeSymptomaticDurationProbabilityDistribution.sample()), toBeH = true)) // All SI go to H in IndSciSim
       case "Recovered" => citizen.setInitialState(RecoveredState())
       case "Hospitalised" => citizen.setInitialState(HospitalisedState(Disease.inverse_dt * Disease.hospitalisedDurationProbabilityDistribution.sample(), splittableRandom.nextDouble() < citizen.sigma))
       case "Dead" => citizen.setInitialState(DeadState())

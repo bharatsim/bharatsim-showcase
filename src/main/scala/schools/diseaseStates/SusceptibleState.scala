@@ -82,7 +82,7 @@ case class SusceptibleState() extends State {
 
     if (agent.asInstanceOf[Person].vaccineShots == 1) {
       val vday = agent.asInstanceOf[Person].receivedFirstShotOn
-      List(agent.asInstanceOf[Person].gammaMaxFirstShot * (t - vday) / rampUpTime, agent.asInstanceOf[Person].gammaMaxFirstShot).min
+      List(parameter + (agent.asInstanceOf[Person].gammaMaxFirstShot - parameter) * (t - vday) / rampUpTime, agent.asInstanceOf[Person].gammaMaxFirstShot).min
     }
     else if (agent.asInstanceOf[Person].vaccineShots == 2) {
       val vday = agent.asInstanceOf[Person].receivedSecondShotOn
